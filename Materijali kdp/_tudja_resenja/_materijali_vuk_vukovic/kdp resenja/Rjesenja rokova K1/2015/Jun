@@ -1,0 +1,35 @@
+//Jun 14.06.2015
+
+//1. predavanja
+
+//2.
+
+void init(){
+	queue<sem> persons;
+	queue<car> cars;
+	sem mutex=1;
+}
+
+
+void person(){
+	sem local=0;
+	wait(mutex);
+	if(cars.empty()){
+		persons.push(local);
+		signal(mutex);
+		wait(local);
+	}
+	car=cars.pop();
+	signal(mutex);
+
+	//driving...
+
+	wait(mutex);
+	cars.push(car);
+	if(!persons.empty()){
+		sem s= persons.pop();
+		s.signal
+	}else
+		signal(mutex);
+
+}

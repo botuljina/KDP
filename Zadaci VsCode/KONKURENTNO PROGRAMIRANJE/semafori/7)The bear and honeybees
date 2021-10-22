@@ -1,0 +1,66 @@
+int kosnica = 0;
+sem Spavaj = 0, Puni = 0;
+sem mutexB = 0, mutexM = 0;
+void bear(){
+    while(1){
+        wait(Spavaj); //blokira se meda
+
+        kosnica = 0;
+
+        signal(mutexB);
+    }
+}
+
+void bees(){
+    while(1)
+    {
+        wait(mutexB);  // P3,P1
+        kosnica++;
+        if(kosnica == h)
+        {
+            signal(Spavaj);
+        }
+        else{
+            signal(mutexB);
+        }
+        praviMed();
+    }
+}
+
+
+// [U GORE ,,ISPRAVNOM" RESENJU JE RAZLIKA U TOME STO PCELA kad je kosnica pun, ne treba da ceka da MEDA POJEDE,
+// NEGO TREBA DA PROBUDI MEDU i ode DALJE DA PRAVI MED, a kod mene pcela ceka da meda pojede pa ide da pravi med]
+// [MOJE RESENJE KOJE SAM SAM NAPISAO]
+N pcela
+
+int kosnica = 0; 
+int max;
+
+Semaphore BeaMutex = 1;
+Semaphore bearWakeUp = 0;
+Semaphore finishEating = 0;
+void bear() {
+    while(1){
+        sleep();
+        wait(bearWakeUp);
+        eat()
+        kosnica = 0;
+        signal(finishEating);
+    }
+}
+
+
+void bea(){
+    while(1){
+        gain_honey_from_flower_toflower();
+
+        wait(BearMutex);
+        kosnica++;
+        if(kosnica == max){
+            signal(bearWakeUp);
+            wait(finishEating)
+        }
+        signal(BearMutex);
+
+    }
+}

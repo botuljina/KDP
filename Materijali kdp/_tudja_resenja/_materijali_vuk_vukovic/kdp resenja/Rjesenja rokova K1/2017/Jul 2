@@ -1,0 +1,62 @@
+//JUl 2 05.07.2017.
+
+//1.
+
+int arrive[N]={0};
+int continue[N]= {0};
+
+process Worker[i=1 to N]{
+	while(true){
+		//moze proci vise puta kroz barijeru prije nego sto mu se posatvi arrrive na 0
+		arrive[i]=1;
+		//nema smisla dodje i odmah mu ponistimo da je dosao
+		<await(continue[i]==1);>
+		//moze se doci da koord visu puta signalizira continue za proces
+		continue[i]=0;
+		//isto kao predhodno
+	}
+}
+
+process Coord[i=1 to N]{
+	while(true){
+		for(int i=1 to N){
+			<await (arrive[i]==1);>
+			arrive[i]=0;
+		}
+		for(int i=1 to N)
+			continue[i]=1;
+	}
+}
+
+//2. 
+
+void init(){
+	const int N=...;
+	int cnt=0;
+	sem mutex=1;
+	sem work=0;
+	sem ready=0;
+}
+
+void barber(){
+	sleeping();
+	wait(work);
+	wait(mutex);
+	cnt--;
+	signal(ready);
+	signal(mutex);
+}
+
+void costumer(){
+	wait(mutex);
+	if(cnt==N)
+		signal(mutex);
+		return;
+	else{
+		cnt++;
+		signal(work);
+		signal(mutex);
+		wait(ready);
+		hair_cut();
+	}
+}

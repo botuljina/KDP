@@ -1,0 +1,107 @@
+1. 
+
+const int MAXRED:
+const int MAXKASA;
+
+monitor kasa_radnja{
+
+	cond c[MAXKASA];
+	int fifo[MAXKASA]={0};
+	int cnt[MAXKASA]={0};
+	bool act[MAXKASA]={0};
+	cond kasirke;
+	int numKasa=0;
+
+	int biram_kasu(){
+		int min=INT_MAX,kasa=0;
+		for(int i=0;i<MAXKASA;i++){
+			if(!act[i]) continue;
+			if(cnt[i]<min){
+				min=cnt[i];
+				kasa=i;
+			}
+		}
+
+		if(cnt[kasa]==MAXRED){
+			for(int i=0;i<MAXKASA;i++)
+				if(act[i]==false){
+					act[i]=true;
+					cnt[i]++;
+					kasa=i;
+					numKasa++;
+					kasirke.signal();
+					break;
+				}
+		}
+		c[kasa].wait(fifo[kasa]++);
+		return kasa;
+	}
+
+	void odlazim(int kasa){
+		cnt[kasa]--;
+		if(cnt[kasa]==0 && numKasa>1){
+			numKasa--;
+			act[kasa]=false;
+		}
+	}
+
+	void sledeci_kupac(int kasa){
+		c[kasa].signal();
+	}
+
+	void spremna_za_rad(){
+		kasirke.wait();
+	}
+}
+
+
+void Kupac(){
+	int k=biram_kasu();
+	roba_za_naplacivanj();
+	placam();
+	odlazim(k);
+}
+
+void Kasirka(){
+	spremna_za_rad();
+	sledeci_kupac();
+	racun_je();
+}
+
+2. 
+
+struct H20{
+	string[3] mol={"","",""};
+	int cntO=0, cntH=0;
+	int turnO=0, turnH=0;
+	int num=0;
+}
+
+H20 s;
+
+void H(string id){
+	region(s){
+		int myturn=cntH++;
+		await(s.num<2 && myturn==turnH);
+		if(s.num==0)
+			mol[++s.num]=id;
+			await(mol[0]!="");
+		else if(s.num==1){
+			mol[++s.num]=id;
+			await(mol[0]!="");
+		}
+		s.turnH++
+	}
+}
+
+void O(string id){
+	region(s){
+		int myturn=cntO++;
+		await(s.num==2 && myturn==turnO);
+		mol[0]=id;
+		s.num=0;
+		mol[0]=mol[1]=mol[2]="";
+		turnO++;
+	}
+}
+

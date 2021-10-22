@@ -1,0 +1,28 @@
+//[OVO OVDE NIJE KAKO TREBA!]
+
+int turn[1:n] = ([n]0)
+
+process CS[i=1 to n]{
+    while(1){
+        <turn[i] = max(turn[1:n] + 1)>
+        for(j=1 to n st j != i)
+            <await(turn[j] == 0 or turn[i] < turn[j])> //Moram da se uporedim sa svakim od procesa
+        kricitcka sekcija
+        turn[i] = 0;
+        ne kricitcna sekcija
+    }
+} 
+
+
+//Bakery algoritam - NESIMETRICNO RESENJE ZA 2 PROOCESA
+process CS[i=1 to n]{
+    while(1){
+        turn1 = 1;
+        turn1 = turn2 + 1;
+        for(j=1 to n st j != i)
+            <await(turn[j] == 0 or turn[i] < turn[j])> //Moram da se uporedim sa svakim od procesa
+        kricitcka sekcija
+        turn[i] = 0;
+        ne kricitcna sekcija
+    }
+} 

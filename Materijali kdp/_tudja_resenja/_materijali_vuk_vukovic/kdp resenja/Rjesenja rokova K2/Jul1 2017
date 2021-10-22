@@ -1,0 +1,22 @@
+1. 
+
+monitor Game{
+
+	cond[4] cards;
+	cond[4] cntCards={2,2,2,2};	
+
+	void getLeft(int id){
+		if(cntCards[(id+3)%4]==0)
+			cards[(id+3)%4].wait();
+		else
+			cards[(id+3)%4]--;
+	}
+
+	void putRight(int id){
+		if(cards[(id+1)%4].queue())
+			cards[(id+1)%4].signal();
+		else
+			cntCards[id]++;
+
+	}
+}

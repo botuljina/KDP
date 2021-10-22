@@ -1,0 +1,126 @@
+//Februar 09.02.2015.
+
+//1.
+void init(){
+	int cnt=N;  //cnt za ekipe opsye prakse
+	queue<ambulance> am[K];
+	sem mutex=1;
+	queue<sem> requests;
+	sem doctorSem=0;
+	sem patientSem=0;
+	sem ambulanceSem=0;
+	int cntPatient=0;
+	bool flag=false;
+}
+
+void doctor(){
+	wait(doctorSem);
+	wait(mutex);
+	cnt--;
+	int priority= generate();
+	for(int i=priority-1;i<3;i++) //ako ima neko veceg prioriteta ili istog
+		if(!requests[i].empty()) flag=true; //ali da duze ceka
+
+	if(am.empty() || flag){
+		requests[priority-1].push(local);
+		signal(mutex);
+		wait(local);
+	}
+	a=am.pop(); //hitna pomoc stigla
+	cnt++;
+	signal(mutex);
+	signal(ambulanceSem);
+
+	
+}
+
+
+void ambulance(){
+	wait(ambulanceSem);
+	//helping
+
+	wait(mutex);
+	am.push(a);
+	falg=false;
+	for(int i=2;i>=0; i--){
+		if(!requests.empty()){
+			sem s=requests[i].pop();
+			s.signal();
+		}
+	}else if (cntPatient>0)
+		signal(patientSem);
+		else
+			signal(mutex);
+
+}
+
+void patient(){
+	wait(mutex);
+	if(cnt>0){
+		signal(mutex);
+		signal(doctorSem);
+	}else{
+		cntPatient++;
+		signal(mutex);
+		wait(patientSem);
+		cntPatient--;
+		signal(mutex);
+		signal(doctorSem);
+	}
+
+}
+
+
+//2.
+
+void init(){
+	sem segment[3]={1};
+	sem mutex[3] ={1};
+	int cnt[3] = {0};
+}
+
+void enter(int numEnter){
+	wait(segment[i]);  		// da li neko ima u predhdnom segemntu
+	wait(mutex[i+1]);  		// zakljucaj sl seg u koji ulazim
+	cnt[i+1]++; 			// povecaj broj vozila u njemu
+	if(cnt[i+1]==1){  
+		signal(mutex[i+1]); 
+		wait(segment[i+1]);  //ako bude neko htjeo da udje u taj segment da se blokira
+	}else
+		signal(mutex[i+1]);
+	wait(segment[i]);	
+}
+
+void crossing(int numEnter, int numExit){
+	int pred=(i%3)+1;
+	int sled=(pred%3)+1;
+	while(sled!=numExit){
+		wait(mutex[pred]);
+		cnt[pred]--;
+		if(cnt[pred]==0)
+			signal(segment[pred]);
+		signal(mutex[pred]);
+
+		wait(mutex[sled]);  		
+		cnt[sled]++; 			
+		if(cnt[sled]==1){  
+			signal(mutex[sled]); 
+			wait(segment[sled]);  
+		}else
+			signal(mutex[sled]);
+
+		pred=(pred%3)+1;
+		sled=(sled%3)+1;
+	}
+}
+
+
+void exit(int numExit){
+	wait(mutex[i]);
+	cnt[i]--;
+	if(cnt[i]==0)
+		signal(segment[i]);
+	signal(mutex[i]);
+}
+
+

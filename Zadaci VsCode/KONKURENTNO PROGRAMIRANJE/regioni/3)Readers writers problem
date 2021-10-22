@@ -1,0 +1,37 @@
+struct RW{
+    int w = 0;
+    int r = 0;
+}
+
+RW v;
+
+void reader(){
+    while(true){
+        region(v){
+            await(w==0);
+            r++;
+        }
+
+        read();
+
+        region(v){
+            r--;
+        }
+    }
+}
+
+void writer(){
+    while(true){
+        region(v){
+            await(w == 0);
+            w++;
+            await(r == 0);
+        }
+
+        write();
+
+        region(v){
+            w--;
+        }
+    }
+}

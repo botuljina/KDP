@@ -1,0 +1,98 @@
+1. 
+
+monitor Prvi{
+
+	int cnt=0;
+	condition c;
+
+	void dolazak(string tip){
+		switch(tip){
+			case "invalid":
+				c.wait(0); //Banka budi osobe koje cekaju
+				break;
+			case "majke":
+				c.wait(1);
+				break;
+			case "ostali":
+				c.wait(2);
+				break;	-
+		}
+	}
+
+}
+
+Broj monitora je jednak broju saltera u banci.
+
+monitor Drugi{
+
+	//Nije receno da treba da ceka ako nema novca
+	double money=0;
+
+	void podigni(int ID, double amount){
+		if(amount<=money)
+			money-=amount;
+	}
+
+	void ulaganje(int ID, double amount){
+		money+=amount;
+	}
+
+	void stanje(int ID){
+		return money;
+	}
+
+}
+
+
+class Client{
+	dolazak("ostali");
+	podigni(123456, 450);
+	dolazak("majke");
+	ulaganje(111111,200);
+	dolazak("invalid");
+	stanje(123456);
+}
+
+
+2. Region
+
+struct struktura {
+	int k=0;
+	int tanjir=2;
+	bool cnt=0;
+	bool[4] jeo= {false,false,false,false};
+}
+
+struktura c;
+
+void spremiHranu(){
+	region(c){
+		await(c.cnt!=0 && c.k==0);
+		spremiHranu(); //moze u regionu jer svako ne moze niko da jede dok
+					   // se hrana ne spremi a jedan je vaspitac
+		c.k=K;
+	}	
+}
+
+void jedi(int id){
+	region(c){  //trazi da jedes
+		c.cnt++;
+		
+		await(c.tanjir>0 && c.k>0 &&  jeo[id]==false) //vidi da li treba uzeti viljuske 
+											//pa onda cekati hranu FIFO
+		c.k--;
+		c.jeo[id]=true;
+		if(jeo[0]& jeo[1]&jeo[2]&jeo[3])
+			for(int i=0; i<4;i++)
+				jeo[i]=false;
+		c.porcije[id]++;
+	}
+	jedi();
+	region(c){	//zavrsi jelo
+		c.cnt--;
+		c.tanjir++;
+	}
+}
+
+
+

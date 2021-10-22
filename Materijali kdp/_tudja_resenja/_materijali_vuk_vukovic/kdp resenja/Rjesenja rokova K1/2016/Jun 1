@@ -1,0 +1,9 @@
+//Jun 13.06.2016
+
+/*1.
+Kada imamo vise proizvodjaca i potrosaca potrebna je dodatna sinhronizacija
+za headi tail kako im ne bi vise procesa odjednom pristupalo.
+
+*/
+
+//2. Ne znam, ne doreceno koliko flasa i odakle

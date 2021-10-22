@@ -1,0 +1,16 @@
+Module BoundedBuffer
+    op put(item);
+    op get(var item);
+Body
+Process p1{
+    int size =0, head = 0, tail = 0;
+    item data[N];
+    while(true){
+        in put(val) and size < N ->
+            {data[head] = val;size=size+1;head = (head+1)%N;}
+        //[] -> znaci da je to alternativna komanda i da imamo 2 alternative koje mozemo obradjivati
+        [] get(val) and size>0 ->
+            {val = data[tail]; size=size-1; tail=(tail+1)%N;}
+        ni //-> oznacava kraj
+    }
+}

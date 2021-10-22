@@ -1,0 +1,34 @@
+chan request(int, string);
+chan []replay(dummy);
+//server treba da simulira FIFO monitor
+proccess Server{
+    int s = 0;
+    queue pos;
+    
+    int id;
+    string opr;
+    while(true){
+        //primi koji process id mi je trazio koju vrstu operacije
+        recieve request(id, opr);
+        //koliko procedura , toliko operacija u switchu, ovo je na slajdu 28 samo malo drugacije
+        switch(opr){
+            case "wait":
+                //ubaci u queue neobradjen zahtev
+                if(s == 0) pos.put(id);
+                else {
+                    s--;
+                    //[javi drugoj strani posao je odradjen]
+                    send replay[id](dummy)
+                }
+                break;
+            case "signal":
+                if(pos.size == 0){
+                    s++;
+                }else{
+                    send replay[pos.remove(0)](dummy)
+                    //ovde se dovodi u pitanje da li je potrebno i da odgovorimo pozivajucem pozivu
+                }
+                break;
+        }
+    }
+}

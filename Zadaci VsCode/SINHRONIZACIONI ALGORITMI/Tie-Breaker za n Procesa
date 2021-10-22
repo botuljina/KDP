@@ -1,0 +1,13 @@
+int in[1:n] =([n]0)
+int last[1:n] = ([n]0)
+
+process CS[i=1 to n]{
+    for(j=1 to n){ //prodji kroz n koraka sinhornizacije, u svakom koraku ispada po jedan proces
+        in[i] = j; // in[i]-> ja, j-> u kom sam koraku sinhornizacije
+        last[j] = i; // koji je poslednji proces stigao u korak j, i-> da sam to ja
+        for(k=1 to n st i!=k){ <- u ovoj for petlji se poredim sa svakim pojedinacnim procesom, st i!= k 
+            while(in[k] >= in[i] and last[j] == i) skip;
+
+        }
+    }
+}

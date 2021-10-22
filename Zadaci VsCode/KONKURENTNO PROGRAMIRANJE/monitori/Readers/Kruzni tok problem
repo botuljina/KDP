@@ -1,0 +1,36 @@
+//disciplina SW
+
+ monitor Kt{
+    const N = 3;
+    //koliko ima automobila u svakom od segmenata kruznog toka
+    int [1..N] count;
+    //redovi cekanja na nekim ulazima u kruzni tok
+    cond [1..N] enter;
+
+    void enterKruzni(int segment)
+    {   
+        // ako neko ceka ispred mene ILI ako u mom levom segmentu ima automobila koji se voze
+        while((enter[segment].queue()) || count[segment] != 0)
+            enter[segment].wait();
+
+        //posto auto iz segmenta jedan ulazi u tok i ide odmah u segment 2[gledaj sliku u svesci]
+        //potrebno je uvecati broj automobilcica u segmentu desno
+        count[(segment mod N) + 1] ++;
+    }
+
+    void exitKruzni(int segment)
+    {
+        count[segment] --;
+        //ako postoji vise automobila koji cekaju da udju u taj segment, probudi vise njih;
+        while((enter[segment]).queue()) && count[segment] == 0) enter[segment].signal();
+    }
+
+    void promenaSegmenta()
+    {
+         count[(segment mod N) + 1] ++;
+         count[segment] --;
+
+        //ako postoji vise automobila koji cekaju da udju u taj segment, probudi vise njih;
+        while((enter[segment]).queue()) && count[segment] == 0) enter[segment].signal();
+    }
+}

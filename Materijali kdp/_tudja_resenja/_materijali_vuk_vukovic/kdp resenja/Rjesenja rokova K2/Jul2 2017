@@ -1,0 +1,22 @@
+3.
+
+monitor Lekari{
+
+	cond c, doctor;
+
+	void zelim_da_se_pregledam(int id, int time){
+		if(doctor.queue()){
+			doctor.signal();
+		}else
+			c.wait();
+	}
+
+	void sledeci(){
+		if(c.empty())
+			doctor.wait();
+		else{
+			c.signal();
+		}
+	}
+}
+}

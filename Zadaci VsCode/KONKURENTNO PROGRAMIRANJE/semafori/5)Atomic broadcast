@@ -1,0 +1,84 @@
+//[RESENJE KAD JE 1p i N consumera] -> sa jednoelementnim baferom
+T buffer;
+sem empty = 1;
+sem full[N] = {0};
+sem mutex = 1;
+int cnt = 0;
+
+
+void producer(){
+    while(true){
+        T item = produce();
+        wait(empty);
+        buffer = item;
+
+        //[posto je u pitanju atomic broadcast potrebno je da obavestim sve consumer-e]
+        for(int i=0;i<N; i++){
+            signal(full[i]);
+        }
+         
+    }
+}
+
+void consumer(int id){   
+    while(true){
+        wait(full[id]); // [Zato sto je signal(full) u for petlji ovde ce uci vise procesa, sto znaci da cnt++ i ceo taj deo posle 
+                    // mora da se smesti unutar mutex-a]
+
+        T item = buffer;
+
+        wait(mutex);
+            cnt++;
+            if(cnt == N){
+                cnt = 0;
+                signal(empty);
+            }
+        signal(mutex);
+
+        consume(item);
+    }
+}
+
+//[RESENJE KAD JE 1p i N consumera] -> sa viseelementnim baferom
+
+T buffer[B];
+
+int tail;
+int head[N] = {0};
+
+sem empty = B;
+sem full[N] = {0};
+
+sem mutex[B] = {1};
+
+int cnt[B] = {0};
+
+void porducer(){
+    while(1){
+        T item = produce();
+        wait(empty);
+        buffer[tail] = item;
+        tail = (tail + 1) % B;
+
+        for(int i =0; i< N; i++){
+            signal(full[i])
+        }
+    }
+}
+
+void consumer(int id){
+    while(1){
+        wait(full[id]);
+        
+        item = buffer[head[id]]
+        
+        wait(mutex[head[id]])
+        cnt[head[id]]++;
+        if(cnt[head[id]] == N){
+            cnt[head[id]] = 0;
+            signal(empty);
+        }
+        signal(mutex[head[id]]);
+        head[id] = (head[id]+1) % B;
+    }
+}

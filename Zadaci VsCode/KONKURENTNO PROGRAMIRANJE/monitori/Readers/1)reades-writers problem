@@ -1,0 +1,336 @@
+//SW disciplina (signal and wait)
+--------------------------------------------------------------------------
+
+monitor RW_SW
+{
+    int cntR = 0;
+    int cntW = 0;
+
+    cond rq;
+    cond wq;
+
+    void startRead()
+    {
+        if(cntW>0 || wq.queue())
+        {
+            rq.wait();
+        }
+        cntR ++;
+        //pisac pusta pisca
+        if(rq.queue())
+            rq.signal();
+    }
+    
+    void endRead()
+    {
+        cntR --;
+        if(cntR == 0 && wq.queue())
+            wq.signal();
+    }
+
+    void startWrite()
+    {
+        if(cntR>0 || cntW > 0)
+        {
+            wq.wait();
+        }
+        cntW ++;
+    }
+
+    void endWrite()
+    {
+        cntW --;
+
+        if(rq.queue())
+        {
+            rq.signal();
+        }else if(wq.queue())
+        {
+            wq.signal();
+        }
+    }
+}
+
+//primer poziva semafora:
+void reader(){
+    while(true){
+        RW_SW.startRead();
+
+        read();
+
+        RW_SW.endRead();
+    }
+}
+
+void writer(){
+    while(true){
+        RW_SW.startWrite();
+
+        write();
+
+        RW_SW.endWrite();
+    }
+}
+
+//----------------------------------------------------------------------------------------
+Ponavljam zadatak samo u ovom slucaju radim: Signal and continue + FIFO
+//----------------------------------------------------------------------------------------
+monitor RW_SW
+{
+    int ticket = 0;
+    int next = 0;
+
+    int cntR = 0;
+    int cntW = 0;
+
+    con rq;
+    cond wq;
+
+    void startRead()
+    {
+        int myticket  = ticket;
+        ticket ++;
+
+        if(myticket != next)
+        {
+            rq.wait(myticket); // po prioritetu
+        }
+
+        cntR ++;
+        next++;
+
+        if(rq.queue())
+            rq.signal();
+    }
+    
+    void endRead()
+    {
+        cntR --;
+        if(cntR == 0 && wq.queue())
+            wq.signal();
+    }
+
+    void startWrite()
+    {
+        int myticket  = ticket;
+        ticket ++
+
+        if(myticket != next || cntR > 0)
+        {
+            wq.wait();
+        }
+        cntW ++;
+    }
+
+    void endWrite()
+    {
+        cntW --;
+        next++; // obrati paznju!! VAZNO JE ZASTO SE OVDE NALAZI next++, a ne u startWrite kao inace
+
+
+        if(rq.queue() && wq.queue() && rq.minrank() < wq.minrank())
+        {
+            //[ako u oba reda ceka neko i ako u readers queue postoji element koji ima manji prioritet nego u wq, onda moramo njega 
+            //prvo da izvadimo iz reda]
+            rq.signal();
+        }
+        else if(rq.queue() && wq.queue() && rq.minrank() > wq.minrank())
+        {
+            //isto to ovde proveravamo samo kazemo da writer treba doci na red prvi, zato je potrebno prvo njega da izvadimo iz reda
+            
+            wq.signal();
+        }
+        else if(rq.queue())
+        {
+            rq.signal();
+        }
+        else if(wq.queue())
+        {
+            wq.signal();
+        }
+    }
+}
+
+//primer poziva semafora:
+void reader(){
+    while(true){
+        RW_SW.startRead();
+
+        read();
+
+        RW_SW.endRead();
+    }
+}
+
+void writer(){
+    while(true){
+        RW_SW.startWrite();
+
+        write();
+
+        RW_SW.endWrite();
+    }
+}
+
+
+//----------------------------------------------------------------------------------------
+VARIJANTA 3
+Ponavljam zadatak samo u ovom slucaju radim: Signal and continue + FIFO, ali koristim 1 cond(1 red)
+//----------------------------------------------------------------------------------------
+monitor RW_SW
+{
+    int ticket = 0;
+    int next = 0;
+    int cntR = 0;
+
+    cond q;
+
+    void startRead()
+    {
+        int myticket  = ticket;
+        ticket ++;
+
+        //[Ovo sluzi da se to budjenje viska- na kraju startRead metode izbaci]
+        //map.set(myticket, 'R');
+
+        if(myticket != next)
+        {
+            q.wait(myticket); // stavljam sad po prioritetu
+        }
+
+        cntR ++;
+        next++;
+
+        if(q.queue() && map.get(next) == 'R')
+            q.signal();
+    }
+    
+    void endRead()
+    {
+        cntR --;
+        if(cntR == 0 && q.queue())
+            q.signal();
+    }
+
+    void startWrite()
+    {
+        int myticket  = ticket;
+        ticket ++
+        //map.set(myticket, 'W');
+        while(myticket != next || cntR > 0)
+        {
+            q.wait();
+        }
+    }
+
+    void endWrite()
+    {
+        next++; // obrati paznju!! VAZNO JE ZASTO SE OVDE NALAZI next++, a ne u startWrite kao inace
+
+        if(q.queue())
+        {
+            q.signal();
+        }
+    }
+}
+
+//primer poziva semafora:
+void reader(){
+    while(true){
+        RW_SW.startRead();
+
+        read();
+
+        RW_SW.endRead();
+    }
+}
+
+void writer(){
+    while(true){
+        RW_SW.startWrite();
+
+        write();
+
+        RW_SW.endWrite();
+    }
+}
+
+
+//----------------------------------------------------------------------------------------
+VARIJANTA 4
+Ponavljam zadatak samo u ovom slucaju radim: Signal and continue + FIFO, ali koristim 1 cond(1 red), POKUSAVAM BEZ ONE GLUPAVE MAPE
+//----------------------------------------------------------------------------------------
+monitor RW_SW
+{
+    int ticket = 0;
+    int next = 0;
+    int cntR = 0;
+
+    cond q;
+
+    void startRead()
+    {
+        int myticket  = 2 * ticket + 0;
+        ticket ++;
+
+        if((myticket / 2) != next)
+        {
+            q.wait(myticket); // stavljam sad po prioritetu
+        }
+
+        cntR ++;
+        next++;
+
+        if(q.queue() && queue.minrank() % 2 == 0) // ovaj drugi deo zakljucujem da je onda citaoc
+            q.signal();
+    }
+    
+    void endRead()
+    {
+        cntR --;
+        if(cntR == 0 && q.queue())
+            q.signal();
+    }
+
+    void startWrite()
+    {
+        int myticket  = 2 * ticket + 1;
+        ticket ++
+        //map.set(myticket, 'W');
+        while((myticket / 2) != next || cntR > 0)
+        {
+            q.wait();
+        }
+    }
+
+    void endWrite()
+    {
+        next++; // obrati paznju!! VAZNO JE ZASTO SE OVDE NALAZI next++, a ne u startWrite kao inace
+
+        if(q.queue())
+        {
+            q.signal();
+        }
+    }
+}
+
+//primer poziva semafora:
+void reader(){
+    while(true){
+        RW_SW.startRead();
+
+        read();
+
+        RW_SW.endRead();
+    }
+}
+
+void writer(){
+    while(true){
+        RW_SW.startWrite();
+
+        write();
+
+        RW_SW.endWrite();
+    }
+}

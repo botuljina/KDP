@@ -1,0 +1,64 @@
+1. 
+
+    1
+4  		2
+    3
+
+1.
+
+monitor Raskrsninca{
+
+	condition cond[4];
+	int cntW[4]={0,0,0,0};		//cekaju da udju u raskrsnicu
+	int cntIn[4]={0,0,0,0};		//u raskrsnici
+	
+	void enter(int a,int b) {
+		cntW[a]++;
+		if ((a+b)%N==0)	{			//ide pravo 
+			while (cntW[a%4+3]>0 || cntIn[a%4+3] || cntIn[a%4+1] || cond[a].queue())		//a ima nekoga desno ko ceka ili levo u raskrsnici
+				cond[a].wait();
+			cond[a].signal();
+		}
+		else {						//ide desno
+			while (cntIn[a%4+1]>0)	//levi vec u raskrsnici
+				cond[a].wait();
+			cond[b].signal();
+		}
+		cntW[a]--;
+		cntIn[a]++;
+	}
+	void exit(int a,int b) {
+		cntIn[a]--;
+		cond[a%4+1].signal();
+		cond[a%4+3].signal();
+	}
+}
+
+2.
+
+struct Barrier{
+	int cntIn=0, cntOut=N;
+}
+
+class BarrierSynchronization{
+	Barrier b;
+
+	void enter(){
+		region(b){
+			cntIn++;
+			if(cntIn==N)
+				cntOut=N;
+			else
+				await(cntIn==N);
+		}
+		cross();
+		region(b){
+			cntOut--;
+			if(cntOut==0)
+				cntIn=0;
+			else
+				await(cntOut==0);
+
+		}
+	}
+}

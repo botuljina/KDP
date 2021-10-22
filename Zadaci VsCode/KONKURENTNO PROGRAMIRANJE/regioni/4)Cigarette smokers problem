@@ -1,0 +1,35 @@
+struct smokers{
+    bool papir = false;
+    bool duvan = false;
+    bool sibice = false;
+    bool table = true;
+}
+
+smokers s;
+
+void agent(){
+    while(1){
+        int i = random(0,3); 
+        // da ne bih kucao preko switch-a 0 ostavlja papir na false ova dva prebacuje na true UNUTAR REGIONA
+        // , 1 menja duvan na false, ova 2 gurne na true, i 2 ostavlja sibice na false sibice
+        region(sm){
+            await(table);
+
+            table = false;
+        }
+    }
+}
+
+
+//pusac koji ima neogranicene zalihe papira
+void smokers_papir(){
+    while(1){
+        region(s){
+            await(d & s);
+            d = false;
+            s = false; 
+            pusi_pljugu(); //moze pusi_pljugu() unutar regiona jer svakako samo jedan moze da uzme sastojke da bi zapalio pljugaricu
+            table = true;
+        }
+    }
+}

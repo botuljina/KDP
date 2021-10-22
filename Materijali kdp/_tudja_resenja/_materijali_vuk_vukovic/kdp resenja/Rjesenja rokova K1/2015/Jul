@@ -1,0 +1,46 @@
+//Jul 05.07.2015
+
+//1.
+
+finish2=false;
+finish1=false;
+arrive[N]={0};
+continue[N]={0};
+
+process Coord1(){
+	while(true){
+		<await(!finish2);>
+		for(int i=1 to n/2){
+			<await (arrive[i]==1);>
+			arrive[i]=0;
+		}
+		finish1=true;
+		<await (finish2);>
+		for(int i=1 to n/2)
+			continue[i];
+	}
+}
+
+process Coord2(){
+	while(true){
+		<await(!finish1);>
+		for(int i=n/2 to n){
+			<await (arrive[i]==1);>
+			arrive[i]=0;
+		}
+		finish2=true;
+		<await (finish1);>
+		for(int i=n/2 to n)
+			continue[i];
+	}
+}
+
+process worker[i=1 to N]{
+	while(ture){
+		arrive[i]=1;
+		<await(continue[i]);>
+		continue[i]=0;
+	}
+}
+
+

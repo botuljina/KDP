@@ -1,0 +1,77 @@
+//jako je bitno da postoji globalna promenljiva koja definise komunikacioni kanal
+chan request;
+chan[] reply;
+
+process Reades_writers {
+    int readCnt = 0, writeCnt = 0;
+    
+    int clientId;
+
+    queue okToWork;
+    operation opr;
+
+    while(true){
+        //[AKO POSTOJI NEKO ZABLOKIRAN I AKO JE USLOV ZA ODBLOKIRANJE TOG NEKOG ISPUNJEN]
+        if(signal && okToWork.size() > 0 && 
+            (okToWork.get(0)[1] == readWait && writeCnt == 0) || (okToWork.get(0).[1] == writeWait && readCnt == 0 && writeCnt == 0)){
+
+            // ako sam stavio bool signal u case-u znaci da treba da radim budjenje
+            // dohvati prvi element koji sam stavio u quueue[red ima objekat sa 2 polja, 1. je clientId a 2. je operacija kad se blokirao]
+            
+                //operacija procesa koji treba da probudim me navodi da je to citalac, takodje kaze mi da writeCnt == 0, znaci da nema ni jednog
+                //aktivnog piscca
+                (clientId,opr) = okToWork.get(0); //-> ovim dohvatam jednog pisca
+            }
+            
+        }else{
+               //1. red je primi neku poruku
+            recieve request(opr, clientId);
+        }
+
+        signal = false;
+
+        //klasican reader/writer problem
+        switch opr:
+            case startRead:
+                    //[Blokiramo se ako postoji neko koji pise ili ako postoji neko ko je vec blokiran]
+                    if( writeCnt > 0 || okToWork.size() > 0){
+                        //mi se blokiramo tako sto stavljamo ko se zablokirao, i koja operacija na kojoj se zablokirao
+                        okToWork.put(clientId, readWait);
+                        //Klijentu ne treba vracati informaciju da je njegov zahtev blokiran, jer bi onda on u live locku sve vreme proveravao da li on moze da radi
+                        continue;
+                    }      
+                    // ovde posto NE POSTOJI BREAK ON NASTAVLJA I KROZ writeWait case
+            case readWait:
+                    //ovaj case kaze, gde treba da nastavi neko ko je bio zablokiran na startRead-u
+                    readCnt++;
+                    // nije bitno sta saljem kao poruku bitno je da onoj drugoj strani dam informaciju da nastavi dalje
+                    send reply[clientId](OK);
+                    signal = true;
+                    break;
+            case endRead:
+                    readCnt --;
+                    //ako je blokirajuca operacija, javi da je ok
+                    send reply[clientId](OK);
+                    //kad smo obavestili klijenta treba da vidimo koga pustamo sledeceg
+                    signal = true;
+                    break;
+            case startWrite:
+                    //[Klasicni uslovi kada writer treba da se zablokira]
+                    if(readCnt > 0 || writeCnt > 0 || okToWork.size() > 0){
+                        okToWork.put(clientId, writeWait);
+                        continue;
+                    }
+                    // ovde posto NE POSTOJI BREAK ON NASTAVLJA I KROZ writeWait case
+            case writeWait:
+                    // ista spika kao proces koji se zaglavio u readWait-u
+                    writeCnt ++;
+                    send reply[clientId](OK);
+                    break;
+            case endWrite:
+                    writeCnt --;
+                    send reply[clientId](OK);
+                    // isto bi trebao nekakav signal
+                    signal = true;
+                    break;
+    }
+}

@@ -1,0 +1,56 @@
+Sem toilet = 1;
+int currW = 0, currM = 0;
+Sem mutexW = 1, mutexM = 1;
+//ovaj turn ovde sluzi da resi izgladnjivanje
+Sem turn = 1;
+Sem capacity = N;
+
+void maleUse(){
+    wait(turn) //svi se blokiraju na turn-u dok se toilet ne oslobodi
+    wait(mutexM)
+    currM++;
+    if(currM == 1)
+    {
+        wait(toilet);
+    }
+    signal(mutexM);
+    signal(turn);
+
+    wait(capacity);
+    pisaj();
+    signal(capacity);
+
+    wait(mutexM)
+    currM--;
+    if(currM > 0)
+    {
+      signal(toilet);
+    }  
+    signal(mutexM);
+}
+
+void womanUse(){
+    wait(turn)
+    wait(mutexW)
+    currW++;
+    if(currW == 1)
+    {
+        wait(toilet);
+    }
+    signal(mutexW);
+    signal(turn)
+    
+    wait(capacity);
+    pisaj();
+    signal(capacity);
+    wait(mutexW)
+    currW--;
+    if(currW > 0)
+    {
+      signal(toilet);
+    }  
+    signal(mutexW);
+}
+
+
+

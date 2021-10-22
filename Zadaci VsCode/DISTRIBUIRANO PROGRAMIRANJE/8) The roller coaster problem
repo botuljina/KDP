@@ -1,0 +1,138 @@
+mbx[] p;
+mbx start, end;
+
+struct{
+    int id;
+} msg;
+
+void passenger(int id){
+    msg m;
+    boolean status;
+    
+    while(1){
+        walk();
+
+        //start ride
+        mbx_put(m, start);
+        //ovde se zapravo blokiramo tj cekamo da nas primi
+        mbx_get(m, p[id], INF, status); 
+
+
+        riding();
+
+        //end ride
+        //potreban info da je voznja zavrsena
+            mbx_get(m, p[id], INF, status); 
+            // javi da si izasao iz rolerkostera
+            mbx_put(m,end); 
+    }
+
+}
+
+void roller_coaster(){
+    msg m;
+    boolean status; 
+    msg[K] passengers;
+
+    while(1){
+        //gather K passengers
+        for(int i =0; i<K; i++){
+            mbx_get(m, start, INF, status)
+            int id = m.id;
+            //[ovo je sacuvano da bi smo posle znali kome da javimo da je voznja gotova]
+            passengers[i] = m;
+            mbx_put(m, p[id])
+        }
+       
+        ride();
+
+        //finish ride
+        for(int i =0; i<K;i++)
+        {
+            mbx_put(passengers[i], p[passengers[i]]);
+        }
+        //[Kad sam javio svima da je voznja gotova ne smem da pustam novu turu dok nisam siguran da su svi izasli iz roler coastera]
+        for(int i = 0; i<K;i++)
+        {
+            mbx_get(m, end, INF, status)
+        }
+    }
+
+}
+
+//[MODIFIKOVANO RESENJE SA SAMO JEDNIM SANDUCETOM rc]
+
+mbx[] p;
+mbx rc;
+
+struct{
+    int id;
+    String operation;
+} msg;
+
+void passenger(int id){
+    msg m;
+    boolean status;
+    
+    while(1){
+        walk();
+        m.id = id;
+        m.operation = "start"; 
+        //start ride
+        mbx_put(m, rc);
+        mbx_get(m, p[id], INF, status); //ovde se zapravo blokiramo tj cekamo da nas primi
+
+
+        riding();
+
+        //end ride
+            m.id = id;
+            m.operation = "end";
+            mbx_get(m, p[id], INF, status); //potreban info da je voznja zavrsena
+            mbx_put(m,rc); // javi da si izasao iz rolerkostera
+    }
+
+}
+
+void roller_coaster(){
+    msg m;
+    boolean status; 
+    msg[K] passengers;
+    Queue buffer;
+
+    while(1){
+        //gather K passengers
+        for(int i =0; i<K; i++){
+            if(!buffer.IsEmpty()){
+                //izvuci poruku iz reda, red je po FIFO redosledu
+                m = buffer.delete();
+            }else{
+                mbx_get(m, rc, INF, status)
+            }
+            int id = m.id;
+            //[ovo je sacuvano da bi smo posle znali kome da javimo da je voznja gotova]
+            passengers[i] = m;
+            mbx_put(m, p[id])
+        }
+       
+        ride();
+
+        //finish ride
+        for(int i =0; i<K;i++)
+        {
+            mbx_put(passengers[i], p[passengers[i]]);
+        }
+        //[Kad sam javio svima da je voznja gotova ne smem da pustam novu turu dok nisam siguran da su svi izasli iz roler coastera]
+        for(int i = 0; i<K;)
+        {
+            mbx_get(m, rc, INF, status)
+            if(m.operation == "end"){
+                //ok!
+                i++;
+            }else{
+                buffer.insert(m);
+            }
+        }
+    }
+
+}

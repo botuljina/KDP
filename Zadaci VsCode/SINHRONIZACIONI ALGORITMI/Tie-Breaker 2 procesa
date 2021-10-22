@@ -1,0 +1,27 @@
+//coarse grain
+//[OVO RESENJE RADI ZA 2 PROCESA]
+bool in1 = false, in2 = false;
+int last = 1;
+
+process CS1{
+    while(true){
+        in1 = true; last = 1;
+        <await(!in2 or last==2)> 
+        //[FAIN GRAIN ]
+        **while(in2==true and last == 1) skip;
+
+        kriticna
+        in1 = false;
+    }
+}
+
+process CS2 {
+    while (true) {
+        in2 = true; last = 2; // onaj ko poslednji postavi vrednost promenljivoj last taj mora da ceka!
+        <await(!in1 or last ==1);> //in2 = true last = 2
+        while(in1 == true and last == 2) skip;
+        kritična sekcija;
+        in2 = false; /* exit protokol */
+        nije kritična sekcija
+    }
+}

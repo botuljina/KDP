@@ -1,0 +1,21 @@
+2. 
+
+struct A{
+	int novac=0;
+
+}
+
+A a;
+
+void uplati(int suma){
+	region(a){
+		a.novac+=suma;
+	}
+}
+
+void isplati(int suma){
+	region(a){
+		await(suma<=a.novac);
+		a.novac-=suma;
+	}
+}

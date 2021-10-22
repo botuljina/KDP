@@ -1,0 +1,47 @@
+int food = N;
+
+sem mutex = 1;
+sem parent = 1 ;
+sem toLeave = 1;
+
+void parentBird(){
+    while(1){
+        guard();
+        eat();
+    }
+}
+
+void eat(){
+    wait(toLeave)
+    hunt_and_eat();
+    signal(toLeave)
+}
+void guard(){
+    wait(toLeave)
+    wait(parent);
+
+    hunt_and_eat();
+    food = F;
+
+    signal(mutex);
+    signal(toLeave)
+}
+
+void babyBird()
+{
+    while(1){
+        sleep();
+        wait(mutex);
+        food--;
+        if(food == 0)
+        {
+            //budi roditelje
+            signal(parent);
+        }else
+            signal(mutex);
+       
+        eat;
+    }
+}
+
+

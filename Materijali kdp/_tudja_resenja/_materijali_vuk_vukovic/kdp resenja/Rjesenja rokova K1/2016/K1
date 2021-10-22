@@ -1,0 +1,57 @@
+//K1 24.03.2016
+
+//1.
+
+//Rj. P3, P2, P1
+
+
+//2.
+void init(){
+	const int N=...;
+	sem mutex=1;
+	sem ramp=1;
+	int cnt=N, cntIn=0, cntOut=0;
+}
+
+void enter(){
+	wait(mutex);
+	if(cnt+cntOut-cntIn<=0){
+		signal(mutex);
+		return;
+	}else{
+		cntIn++;
+		signal(mutex);
+		wait(ramp);
+		//ulazi...
+	}
+}
+
+void exit(){
+	wait(mutex);
+	cntOut++;
+	if(cntOut==1){
+		signal(mutex);
+		wait(ramp);
+	}else
+		signal(mutex);
+
+	//izlazi...
+}
+
+
+void notifyEnter(){
+	wait(mutex);
+	cntIn--;
+	cnt--;
+	signal(ramp);
+	signal(mutex);
+}
+
+void notifyExit(){
+	wait(mutex);
+	cnt++;
+	cntOut--;
+	if(cntOut==0)
+		signal(ramp);
+	signal(mutex);
+}

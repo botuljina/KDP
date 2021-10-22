@@ -1,0 +1,37 @@
+2.
+
+monitor BumperCars{
+
+	int cntCars=0;
+	int cntPerson=0;
+	cond cars, persons;
+
+	void takeCar(){
+		if(persons.queue()){
+			persons.wait(cntPerson++);
+		}else{
+			if(cars.queue())
+				cars.signal();
+			else
+				persons.wait(cntPerson++);
+		}
+	}
+
+	void carStop(){
+		if(persons.queue())			
+			persons.signal();
+		else
+			cars.wait(cntCars++);
+	}
+
+
+}
+
+class Person{
+	takeCar();
+	drive();
+}
+
+class Car{
+	carStop();
+}

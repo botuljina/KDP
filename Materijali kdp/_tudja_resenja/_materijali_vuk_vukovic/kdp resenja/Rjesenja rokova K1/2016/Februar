@@ -1,0 +1,63 @@
+//Februar 08.02.2016.
+
+//1. 
+
+void init(){
+	sem mutex=1;
+	sem r=0, sem w=0;
+	int nr=0, nw=0;
+	int wr=0, ww=0;
+}
+
+void reader(){
+	wait(mutex);
+	if((nw>0)||(ww>=2)){
+		wr++;
+		signal(mutex);
+		wait(r);
+	}
+	nr++;
+	SIGNAL
+
+	//reading...
+
+	wait(mutex);
+	nr--;
+	SIGNAL
+
+}
+
+void writer(){
+	wait(mutex);
+	if((nr>0)||(nw>0)){
+		ww++;
+		signal(mutex);
+		wait(w);
+	}
+	nw++;
+	SIGNAL
+
+	//writing
+
+	wait(mutex);
+	nw--;
+	SIGNAL;
+}
+
+SIGNAL{
+	if((nw==0)&&(ww<2)&&(wr>0)){
+		wr--;
+		signal(r);
+	}
+	else if ((nr==0)&&(nw==0)&&(ww!=0)){
+		ww--;
+		signal(w);
+	}
+	else
+		signal(mutex);
+
+}
+
+
+
+//2. Ne znam 

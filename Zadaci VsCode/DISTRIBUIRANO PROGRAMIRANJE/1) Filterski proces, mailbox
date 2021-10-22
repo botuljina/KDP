@@ -1,0 +1,18 @@
+chan input(char), output(char[MAXLINE]);
+
+process Char_to_Line{
+    char line[MAXLINE];
+    int i = 0;
+    while(true){
+        //[primi karakter i smesti ga na odgovarajuce mesto]
+        recieve input(line[i]);
+        // != CR znaci: da li smo dobili karak. za kraj reda
+        while(line[i] != CR && i < MAXLINE - 1){
+            i++;
+            recieve input(line[i]);
+        }
+        line[i] = EOL;
+        send output(line);
+        i = 0;
+    }
+}

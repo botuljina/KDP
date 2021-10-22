@@ -1,0 +1,49 @@
+int cnt =0 ;
+sem mutex = 1;
+sem go = 0;
+
+//lose resenje - gore u mutexu moze da se desi da procesi zaglavljeni,
+//kada se desi signal mutex, da proleti neki proces koji ne treba da proleti
+void process(){
+    wait(mutex); 
+    cnt++;
+    if(cnt == N)
+    {
+        cnt = 0;
+        //skupilo se N procesa
+        for(int i = 0; i < n; i++)
+        {
+            signal(go);
+        }
+        signal(mutex)
+    }else{
+        signal(mutex)
+        wait(go)
+    }
+}
+
+//dobro resenje - uradjeno preko predaje stafetne palice
+
+sem barier1 = 1, barier2 = 0;
+
+void process(){
+    wait(barier1) 
+    cnt++;
+    if(cnt == N)
+    {
+        // uslo N procesa
+        signal(barier2)
+    }else
+    {
+        signal(barier1);
+    }
+    wait(barrier2); 
+    cnt--;
+    if(cnt == 0){
+        //prosao i poslednji proces
+        signal(barrier1)
+    }else
+    {
+        signal(barrier2)
+    }
+}

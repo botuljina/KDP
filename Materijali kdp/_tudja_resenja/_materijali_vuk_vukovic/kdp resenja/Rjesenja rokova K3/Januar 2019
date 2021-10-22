@@ -1,0 +1,161 @@
+1. 
+
+FIFO - Raspodjeljeni semafori
+
+sem[] batons= {0,0,0,0,0};
+int[] order= {0,0,0,0,0};
+int states[] = {0,0,0,0,0} 		//0- not hungry, 1- hungry, 2- eating
+sem mutex=1;
+
+void Philosophers(int id){
+
+	int left = (id+1)%5;
+	int right= id;
+
+	wait(mutex);
+	states[id]=1; 
+
+	if(states[left]==2 || states[right]==2){
+		orders[id]= max(orders)+1;
+		signal(mutex);
+		wait(batons[id]);
+	}
+
+	states[id]=2;
+	signal(mutex);
+
+	eat();
+
+	wait(mutex);
+	states[id]=0;
+	int temp= ;
+
+	if((states[(right+1)%5]==2 || orders[right]==0) && (states[temp] == 2 || orders[left] == 0))
+		signal(mutex); //ako ne zeli da jede ili vec jedu lijevi i desni nista
+	else{
+		if(orders[left] > orders[right]){							//levi je dosao kasnije
+			if(states[(right +1) % 5] != 2 && orders[right] != 0){			//ako desni od desnog ne jede i desni hoce da jede, pusti ga da jede
+				orders[right] = 0 ;
+				signal(batons[right]);
+			}
+			
+			if(states[temp] != 2 && orders[left] != 0){						//ako leve od levog ne jede i levi hoce da jede, pusti ga da jede
+				orders[left] = 0 ;
+				signal(batons[left]);
+			}
+		}else{
+			int temp= (left==0) ? 4 : (left-1);
+			
+			if(states[temp] != 2 && orders[temp] != 0){			//ako leve od levog ne jede i levi hoce da jede, pusti ga da jede
+				orders[left] = 0 ;
+				signal(batons[left]);
+			}
+			
+			if(states[(right +1) % 5] != 2 && orders[right] != 0){			//ako desni od desnog ne jede i desni hoce da jede, pusti ga da jede
+				orders[right] = 0 ;
+				signal(batons[right]);
+			}
+
+
+		}
+
+
+
+	}
+
+}
+
+
+2. Signal And Continue
+
+Monitor Zamena{
+
+	cond c;
+	int* ref;
+	int cnt=0;
+
+	void zameni(int * vrednost){
+		if(cnt%2==0){
+			ref= vrednost;
+			cnt++;
+			c.wait();
+		}else{
+			int temp= *vrednost;
+			*vrednost=*ref;
+			*ref= temp; 
+			cnt=0;
+			c.signal();
+		}
+	}
+}
+
+
+
+
+
+
+3. Opdajuce sortiranje( 10,9,8,7...)
+
+P(id)
+
+int min, value;
+
+receive(in(value));
+min= value;
+receive(in(value));
+while(value!=EOS){
+	if(min<value){
+		send out(value);
+	}else{
+		send out(min);
+		min= value;
+	}
+	receive(in(value));
+}
+
+send out(min);
+send out(EOS);
+
+
+4. CSP
+
+int M= ... ; // broj posjetilaca
+int N= ... ; // broj vozila koja primaju po jednog putnika
+
+[Visitor(i: 0...M)::VISITOR || Car(i:0...N)::CAR || Monitor::MONITOR]
+
+VISITOR::[
+	Monitor!WantDrive();
+	Monitor? OkStart();
+	Looking park...
+	Monitor!endRide();
+]
+
+
+CAR::[
+	Monitor!ReadyForWork();
+	true -> *[
+		Monitor ? startRide();
+		Driving...
+		Monitor! FinishedDrive();
+	]
+]
+
+MONITOR::[
+ readyCars: integer;
+ readyCars:=0;
+ *[
+ 	(i:0...N)Car(i) ? ReadyForWork() -> readyCars=readyCars+1;
+ 	readyCars>0; (i:0...M) Visitor(i)? WantDrive() -> 
+ 					readyCars:=readyCars-1; Car(i)!startRide(); Visitor(i)!OkStart();
+ 	(i:0...M) Car(i)? FinishedDrive() ->*[
+ 		(i:0...M) Visitor(i)? endRide() -> readyCars=readyCars+1;
+ 	] 
+ ]
+
+]
+
+
+
+
+

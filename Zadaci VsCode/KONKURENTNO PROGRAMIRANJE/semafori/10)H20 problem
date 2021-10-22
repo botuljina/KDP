@@ -1,0 +1,129 @@
+
+int kiseonik = 0, int vodonik = 0
+Sem K=1, V = 2,mV = 1, barier1 = 0;
+[MOJE RESENJE]
+------------------------------------------------------------------
+void kiseonik(){
+    wait(K); //K2,K3
+  
+    wait(mV); 
+    kiseonik++;
+    if(kiseonik==1 && vodonik == 2)
+    {
+        //propustas taj zajedno sa kiseonikom
+        signal(barier1)
+    }
+    signal(mV);
+    wait(barier1); 
+
+    kiseonik--;
+    if((kiseonik+vodonik)== 0){
+        //prosao i poslednji proces
+        bond();
+        signal(V)
+        signal(V)
+        signal(K)
+    }else
+    {
+        signal(barrier1)
+    }
+
+
+}
+
+void vodonik(){
+    wait(V); // V3,V4
+
+    wait(mV); 
+    vodonik++;
+    if(kiseonik==1 && vodonik == 2)
+    {
+        //propustas taj zajedno sa kiseonikom
+        signal(barier1)
+    }
+    signal(mV);
+
+    wait(barier1); 
+
+    vodonik--;
+    if((kiseonik+vodonik)== 0){
+        //prosao i poslednji proces
+        bond();
+        signal(V)
+        signal(V)
+        signal(K)
+    }else
+    {
+        signal(barrier1)
+    }
+}
+[TASHINO RESENJE-preko predaje stafetne palice] 
+------------------------------------------------------------------
+sem Oin = 1, Oout = 0, Hin = 0,Hout = 0
+int cntH = 0, cntO = 0;
+
+void O(int id){
+    wait(Oin);
+    signal(Hin)
+    wait(Oout)
+
+    bond();
+
+    signal(Hout)
+    signal(Hout)
+    cntH =0;
+    signal(Oin)
+
+}
+
+void H(int id){
+    wait(Hin);
+    cntH++;
+    if(cntH == 1){
+        signal(Hin);
+        wait(Hout)
+    }else{
+        //imamo sva 3 sigurno ovde jer je cntH  u prvoj if vec uso i blokirao se na Hout
+        signal(Ouut);
+        wait(Hout)
+    }
+}
+[TASHINO RESENJE-preko barijere]
+------------------------------------------------------------------ 
+sem barier = 1;
+int cntH = 0, cntO =0 ;
+sem Ogo = 0, Hgo = 0;
+
+void O(int Id){
+    wait(barier);
+    if(cntH > 1){
+        cntH -=2;
+        bond();
+        signal(Hgo);
+        signal(Hgo); 
+        signal(barier);
+    }else{
+        cntO++;
+        signal(barier);
+        //ovde ce sada H biti zaduzen za bond
+        wait(Ogo)
+    }
+}
+
+void H(int Id){
+    wait(barier);
+    if(cntH> 0 && cntO > 0){
+        cntH--;
+        cntO--;
+        bond();
+        signal(Hgo);
+        signal(Ogo);
+        signal(barier);
+    }else
+    {
+        cntH++;
+        signal(barier);
+
+        wait(Hgo);
+    }
+}

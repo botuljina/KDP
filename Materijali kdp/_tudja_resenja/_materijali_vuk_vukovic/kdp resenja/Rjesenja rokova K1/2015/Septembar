@@ -1,0 +1,35 @@
+//Septembar 04.09.2015
+
+//2.
+
+
+queue<sem> isplate;
+queue<int> kolicine;
+sem mutex=1;
+int cnt=0;
+
+void  uplati(int am){
+	wait(mutex);
+	cnt+=am;
+	if(!isplate.empty()){
+		if(kolicine.peek()<=cnt){
+			sem s= isplate.pop();
+			kolicine.pop();
+			s.signal;
+		}
+	}else
+		signal(mutex);
+
+}
+
+void isplati(int am){
+	sem local=0;
+	wait(mutex);
+	if(am>cnt){
+		isplate.push(local);
+		signal(mutex);
+		wait(local);
+	}
+	cnt-=am;
+	signal(mutex);
+}

@@ -1,0 +1,52 @@
+1. 
+
+monitor Viza{
+
+	cond c;
+	int clock;
+
+	void tick(){
+		clock+=10; // ako povecavam za 1 moram dodati neki termin kraja 	sastanka i odna ovaj if uslov samo tada pozivam
+		if(c.queue() && c.minRank()>=clock)
+			c.signal();
+	}
+
+	void start(int timeStart){
+		if(clock<time)
+			c.wait(time);
+	}
+
+}
+
+2. 
+
+struct A{
+	int k=0;
+	int come=0;
+	bool bus=false;
+	int cnt=0;
+};
+
+A a;
+
+void bus(){
+	region(a){
+		a.bus=true;
+		await(a.k==K || a.cnt==a.come)
+		a.cnt=a.come=0;
+	}
+}
+
+void person(){
+	region(a){
+		await(bus==false);
+		a.come++;
+		await(a.bus==true && a.k<K);
+		k++; cnt++;
+	}
+	drive();
+	region(a){
+		k--;
+	}
+}
+

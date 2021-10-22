@@ -1,0 +1,23 @@
+//Februar 1 11.02.2017
+
+//1.
+
+int last[N]={0};
+int in[N]={0};
+
+processCS[i=1 to N]{
+	while(true){
+		for(j=1 to N){  //kroz sva stanja
+			last[j]=i;
+			in[i]=j;
+			for(k=1 to N){
+				if(k==i) continue;
+				while(last[j]==i && in[k]>=in[i])skip;
+				/**CS**/
+				in[i]=0;
+			}
+		}
+	}
+}
+
+//RJ : P1,P3,P2

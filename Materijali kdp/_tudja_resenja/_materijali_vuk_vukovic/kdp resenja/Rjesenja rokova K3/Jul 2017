@@ -1,0 +1,158 @@
+1. Radila
+
+2.  The sleeping barber problem 
+
+N +1 - stolica
+
+void init(){
+	sem sleep=0;
+	sem mutex=1;
+	sem pay=0;
+	sem done=0;
+	int cnt=0;
+
+}
+
+void barber(){
+	while(true){
+		wait(sleep);
+		//working
+		signal(next);
+		wait(pay);
+		signal(done);
+	}
+}
+
+void customer(){
+	wait(mutex);
+	if(cnt==N){
+		signal(mutex);
+	}else{
+		if(cnt==0)
+			signal(sleep);
+		cnt++;
+		signal(mutex);
+		wait(next);
+		//get haircut...
+		signal(pay);
+		wait(done);
+	}
+
+}
+
+3. 
+
+pocetak 0-12
+
+Monitor Doktori{
+
+	cond red;
+	cond lekar;
+	int cnt=0;
+
+	void želim_da_se_pregledam(int ID, int pocetak){
+		if(cnt>=1)
+			red.wait();
+		else
+			lekar.signal();
+	}
+
+	void sledeći(){
+		if(cnt==0)
+			lekar.wait();
+		red.signal();
+	}
+}
+
+
+4. Radila
+
+
+5. C-Linda
+
+
+void init(){
+	eval(CentralniRacunar());
+	for(int i=0;i<N;i++)
+		eval(Koncetrator());
+	for(int i=0;i<M;i++)
+		eval(Terminal());
+}
+
+void Terminal(int idT){
+	int idK;
+	while(true){
+		out("Poruka T->K",idT, idK);
+		in("Odgovor K->T",idT, idK);
+	}
+}
+
+
+void Koncetrator(int idK){
+	int[] idT;
+	int head=0;
+
+	while(true){
+		int i=0;
+		while(i<idT.length){
+			inp("Poruka T->K",idT[head], idK);
+			out("Poruka K->C", idT[head], idK,i);
+			head=(head+1)%idT.length;
+			i++;
+		}
+		//primi sve poruke od centralong racunara za klijente
+		int i=0;
+		while(i<idT.length){
+			in("Odgovor C->K", idT[i], idK);
+			out("Odgovor K->T", idT[i], idK);
+			i++;
+		}
+	}
+}
+
+
+void CentralniRacunar(){
+	int i=0;
+	while(true){
+		in("Poruka K->C",?idT, ?idK,i);
+		out("Odgovor C->K",idT, idK);
+		i++;
+	}
+}
+
+6.
+
+Skup -- lista rastuce
+
+[Insert::INSERT || Node(i:1...N)::NODE || Free::FREE || Head::HEAD]
+
+
+INSERT::[
+	idFree, idHead:integer;
+	Free!getFree()-> Insert?idFree;
+	Head!getHead()->Insert?idHead;
+	[
+		free!removeFirst() -> [Free?result-> node(idFree)!setNext(idHead);head!setHead(idFree)]
+	]
+]
+
+
+FREE::[
+	first: integer;
+	*[Insert?getFree() -> Insert!first
+	  [] Insert?removeFirst()-> node(first)!getNext(),
+	  							[x:integer, node(first)?result(x)->first:=x]
+]
+
+
+HEAD::[
+	head:integer;
+	*[x:integer; Insert?setHead(x)->head(x)
+	  [] Insert?getHead() -> Insert!head];
+]
+
+NODE::[
+	value, next:integer;
+	*[Free?getNext() -> free!result(next)
+	  [] x:integer; Insert?setNext(x) ->next:=x]
+]

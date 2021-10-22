@@ -1,0 +1,24 @@
+int number = 1;
+int next = 1;
+int turn[1:n] = ([n] 0);
+
+process Ticket[i = 1 to n]{
+    while(true){
+        <turn[i] = number; number ++ >
+        //FINE GRAIN RESENJE
+        turn[i] = fetch_and_add(number,1); //to znaci daj mi trenutnu vrednost number, a number uvecaj za 1!
+
+        <await(turn[i] == next)>
+        //FINE GRAIN RESENJE
+        while(turn[i] != next) skip;
+        critical
+
+
+        <next = next+1>
+        //Za Fine grain mogli bi smo isto da incrementiramo vrednost sa fetch_and_add, ali to ume da bude sporo
+        dovoljno je samo
+        next = next+1;
+
+        noncritical
+    }
+}

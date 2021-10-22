@@ -1,0 +1,122 @@
+struct bridge
+{
+    int s = 0;
+    int n = 0;
+}
+
+
+Bridge bridge;
+
+void south()
+{
+    region(bridge)
+    {
+        await(n == 0); //ja mogu da prodjem tek kada nema nikog vise na severu
+        s++;
+    }
+
+    cross();
+
+    region(bridge)
+    {
+        s--;
+    }
+}
+
+void north()
+{
+    region(bridge){
+        await(s == 0);
+        n++;
+    }
+
+    cross();
+
+    region(bridge){
+        n--;
+    }
+}
+
+-----------------------------------------------------------------------------------------------
+modifikacija sa propustanjem 10 komada
+-----------------------------------------------------------------------------------------------
+[OVAKO RESENJE NIJE DOBRO PO POSTAVCI ZADATKA - JER POSTAVKA KAZE DA KRECE DA SE BROJI 10 automobila TEK KADA SA DRUGE STRANE AUTO CEKA]
+struct bridge
+{
+    int s = 0;
+    int n = 0;
+    int crossed_south = 0;
+    int crossed_north = 0;
+    int wait_south = 0;
+    int wait_north = 0;
+}
+
+
+Bridge bridge;
+const int K = 10;
+
+
+void south()
+{
+    region(bridge)
+    {
+        wait_south ++;  //za south kazemo: pre await-a ja cekam!
+        //[zbog postavke modifikujemo await]
+        //await(n == 0 && (crossed_south < K || wait_north == 0));
+        
+        await(n==0 && crossed_south<K);
+
+        //cim se pojavi neko sa strane i preslo je vise od 10 automobila, mi se blokiramo
+        
+        wait_south --; //za south kazemo: cim sam prosao await dekremtujem da ja cekam!
+        s++;
+
+        //[BITNO!!!]
+        //kada se inkrementira wait_north -> to znaci da neko ceka na severu, jug pusta 10 od momenta cekanja
+        if(wait_north > 0)
+        { 
+            crossed_south++;
+        }
+        crossed_north = 0;
+    }
+
+    cross();
+
+    region(bridge)
+    {
+       s--;
+
+       /* [OVAKO RESETOVANJE BROJACA NIKAKO NE VALJA] -> crossed_south = 0 i crossed_north = 0 sto znaci da opet mogu da krenu sa juga
+       // i automatski smo sjebali uslovnu sinhronizaciju
+       //if(s == 0){
+       //    crossed_south = 0;
+       //}
+       */
+    }
+}
+
+void north()
+{
+    region(bridge){
+        wait_north ++;
+        await(s == 0 && crossed_north < K);    
+        wait_north --;
+
+        n++;
+
+        if(wait_south > 0){
+            crossed_north++;
+        }  
+        //ovako treba resetovati brojac za ove sto prelaze sa juga
+        crossed_south = 0;      
+    }
+
+    cross();
+
+    region(bridge){
+        n--;
+        if(n == 0){
+           crossed_north = 0;
+       }
+    }
+}

@@ -1,0 +1,34 @@
+struct Point
+{
+    int x = 0;
+    int y = 0;
+    //sluzi da znamo da li je ispisnao ili nije ispisano
+    bool full = true; -> stavljeno na true jer prvo print point treba da ispise 0,0
+}
+Point point;
+
+void makePoint(){
+    for(int i = 1;; i < n: i++)
+    {
+        region(point)
+        {
+            await(!point.full);
+            point.x = i;
+            point.y = i*i;
+            point.full = true;
+        }
+    }
+}
+
+void printPoint(){
+    for(int i =0; i<=n; i++){
+        region(point)
+        {
+            await(full);
+            print(point.x)
+            print(point.y)
+            point.full = false;
+        }    
+    }
+
+}

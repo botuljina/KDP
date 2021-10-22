@@ -1,0 +1,235 @@
+Reader/Writer problem 1
+
+sem db=1;
+sem mutexR=1;
+readerCount = 0;
+
+Dovoljno dobro resenje ako imamo samo 1 citaoca, 1 pisaoca
+---------------------------------------------------
+void Readers(int Id){
+    while(1)
+    {
+        wait(db)
+        readDatabase()      
+        signal(db)
+    }
+}
+
+void Writer(int Id)
+{
+    while(1)
+    {
+        createData();
+
+        wait(db);
+        writeData();     
+        signal(db);
+    }
+}
+
+-----------------------------------------------------
+Resenje ako ima vise citalaca: [Ovo resenje dovodi do izgladnjivanja pisaca ako ima puno pisaca]
+-----------------------------------------------------
+
+sem db =1,mutexR = 1; //mutexR stiti iskljucivo cntR promenljivu
+int cntr = 0;
+
+void Readers(int Id){
+    while(1)
+    {
+        wait(mutexR)
+        if(cntr==0) wait(db) //ako sam ja 1. citalac onda cu se sinhronizovati sa piscima
+        cntr++;    
+        signal(cntR)
+ 
+        readDatabase()      
+
+        wait(mutexR)
+        cntr--;
+        if(cntr==0) signal(db)
+        signal(mutexR);
+    }
+}
+
+void Writer(int Id)
+{
+    while(1)
+    {
+        createData();
+
+        wait(db);
+        writeData();     
+        signal(db);
+    }
+}
+
+-----------------------------------------------------
+Resenje ako ima vise citalaca: [Tehnika predaje stafetne palice]
+-----------------------------------------------------
+
+
+void Readers(int Id){
+    while(1)
+    {
+        <await(cw==0); cr++;>
+
+        readDatabase()      
+
+        <cr--;>
+    }
+}
+
+void Writer(int Id)
+{
+     while(1)
+    {
+        <await(cw==0 && cr==0); cw++;>
+
+        readDatabase()      
+
+        <cw--;>
+    }
+}
+
+----------------------------------------------
+Nacin na koji se oni gore await-ovi implementiraju preko 2 semafora - idalje je readersPreferred solution 
+//  ww!=0 -> na 106. liniji uslov kaze blokiraj sve citaoce dok ne iscure pisci
+----------------------------------------------
+//ova 3 semafora zapravo cine 1 raspodeljeni binarni semafora, stite 1 te isti resurs
+Sem e = 1, r = 0 , w = 0;
+
+int cr = 0, cw =0; 
+
+int waitingR = 0, waitingW = 0; // koliko ima elemenata koji su se zablokirali
+
+void Readers(int Id){
+    while(1)
+    {
+        wait(e); //daj mi ekluzivno pravo pristupa nekom resursu
+        if(cw != 0 || ww!=0) {
+            //zakljucujemo da ima pisaca, znaci da u ovom if-u mi treba da se zablokiramo
+            //Readers ce reci: ,, ja cekam da CurrentWriters zavrse i da svi waitingWriters zavrse, do tad sam ja currentReade
+            waitingR++;
+           
+            signal(e);
+
+            wait(r);
+            waitingR--;
+        }
+        cr++;
+        //SIGNAL-ako ima nekog zablokiranog idi probudi ga
+        //Ako je u pitanju raspodeljeni binarni semafor, mora da postoji jedan gereicki If koji ce
+        //u zavisnosti od uslova probuditi 1 od ta 3 semafora!!
+
+        if(cw == 0 && waitingR!=0 && waitingW==0)
+        {
+            signal(r)
+        }
+        else if(cw == 0 && && cr == 0 && waitngW != 0 )
+        {
+            signal(w)
+        }
+        else
+            signal(e);
+
+        readDatabase()      
+
+        wait(e)
+        cr--;
+        SIGNAL
+    }
+}
+
+void Writers(int Id){
+    while(1)
+    {
+        wait(e); //daj mi ekluzivno pravo pristupa nekom resursu
+        if(cw != 0 || cr != 0) {
+            waitingW++;
+            signal(e);
+
+            wait(w);
+            waitingW--;
+        }
+        cw++;
+        SIGNAL
+        
+        writeDatabase()      
+
+        wait(e)
+        cw--;
+        SIGNAL
+    }
+}
+
+
+----------------------------------------------
+Nacin gore kako se tacno po redosledu blokiranja otpustaju pisci ili citaoci, da ne bude ni readersPreferred a ni writersPreffered
+*****Glavna razlika je sto se umesto waitingR i waitingW brojaca uvodi lista***
+----------------------------------------------
+//ova 3 semafora zapravo cine 1 raspodeljeni binarni semafora, stite 1 te isti resurs
+//[PROBLEM] -> sa ovom implementacijom ja ne znam koga tacno budim, znam samo da budim eksplicitno ili reader-a ili writer-a u zavisnosti 
+// od toga koja if petlja bude ispunjena
+
+
+Sem e = 1, r = 0 , w = 0;
+int cr = 0, cw =0;
+List list;
+
+da bi tacno znao koga budim, tj. da budjenje ne zavisi od toga kako ce semafor probuditi moram da:
+Sem e = 1, r[M]=0, w[N] = 0;
+-> sa privatnim semaforima radim:  1)wait(r[i]) <--- U URADJENOM RESENJU ISPOD TO NIJE TAKO RADJENO, NEGO JE RADJENO PO VARIJANTI IZNAD
+                                   2)list.add('W',i); || list.add('R',i)
+                                   
+void Readers(int Id){
+    while(1)
+    {
+        wait(e); //daj mi ekluzivno pravo pristupa nekom resursu
+        if(cw != 0 || list.size()>0) {
+            //zakljucujemo da ima pisaca, znaci da u ovom if-u mi treba da se zablokiramo
+            list.put('R');
+            signal(e);
+            wait(r);
+            list.remove(0);
+        }
+        cr++;
+        //SIGNAL-ako im a nekog zablokiranog idi probudi ga
+        if(cw == 0 && list.size() > 0  && list.get(0) =='R')
+        {
+            signal(r)
+        }
+        else if(cw==0 && cr == 0 &&  && list.size() > 0  && list.get(0) =='W')
+        {
+            signal(w)
+        }
+        else
+            signal(e);
+
+        readDatabase()      
+
+        wait(e)
+        cr--;
+        SIGNAL
+    }
+}
+
+void Writers(int Id){
+    while(1)
+    {
+        wait(e); //daj mi ekluzivno pravo pristupa nekom resursu
+        if(cw != 0 || cr != 0 || list.size()>0) {
+            list.put('W');
+            signal(e);
+            wait(w);
+            list.remove(0);
+        }
+        cw++;
+        SIGNAL
+        
+        writeDatabase()      
+
+        wait(e)
+        cw--;
+        SIGNAL
+    }
+}

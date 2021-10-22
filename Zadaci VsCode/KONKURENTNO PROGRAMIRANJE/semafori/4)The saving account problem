@@ -1,0 +1,40 @@
+int BankAmount = 0;
+int MoneyNeed = 0;
+int waitingToWithdraw = 0;
+sem mutex = 1;
+sem enter = 1;
+sem toWithdraw = 0;
+
+void deposit(int amount){
+    wait(mutex); 
+    BankAmount += amount; 
+    if(MoneyNeed > 0){
+        MoneyNeed -= amount;
+        if(MoneyNeed <= 0){
+            MoneyNeed = 0;
+            signal(toWithdraw);    
+        }else{
+            signal(mutex);
+        }     
+    }else{
+        signal(mutex);
+    }
+}
+
+
+void withdraw(int amount){
+    wait(enter); 
+    wait(mutex); 
+    if(BankAmount-amount > 0){
+        BankAmount -= amount;
+    }else{
+        MoneyNeed = amount - BankAmount;
+        signal(mutex);
+        wait(toWithdraw); 
+        BankAmount -= amount;
+    }
+    //[OVDE JE VUK OBRNUO, IMA LI RAZLIKE?]
+    signal(enter);
+    signal(mutex); 
+}
+

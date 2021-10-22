@@ -1,0 +1,48 @@
+1. 
+
+monitor Stampac{  //Prvi dio bez prioriteta
+
+	cond priner[2];
+	cond PWait[2];
+
+	int request(int p){
+		while(printer[p].queue())
+			PWait[p].wait();
+		printer[p].wait();
+	}
+
+	void release(int printer){
+		printer[p].signal();
+		if(PWait[p].queue())
+			PWait.signal();
+	}
+}
+
+
+monitor Stampac{ // sa prioritetima
+
+	cond priner[2];
+	cond PWait[2][N];
+	int cnt[p][N];
+
+	int request(int p, int priority){
+		int myPri=cnt[p][priority]++;
+		while(printer[p].queue())
+			PWait[p][priority].wait(myPri);
+		printer[p].wait();
+	}
+
+	void release(int printer){
+		printer[p].signal();
+		
+		for(int i=0;i<N;i++)
+			if(PWait[p][i].queue()){
+				PWait[p][i].signal();
+				break;
+			}
+		}
+	}
+}
+
+
+2. nmp

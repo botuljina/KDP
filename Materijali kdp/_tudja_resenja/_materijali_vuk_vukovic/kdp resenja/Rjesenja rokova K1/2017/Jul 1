@@ -1,0 +1,7 @@
+//Jul 1 20.06.2017
+
+/*
+1. Raspodjeljeni binarni semafori su semafori koji se ponasaju kao jedan
+semafor koji je podjeljen na dva dijela. u jendom trenutku samo jedan od
+njih moze imari vrijednost 1...
+*/

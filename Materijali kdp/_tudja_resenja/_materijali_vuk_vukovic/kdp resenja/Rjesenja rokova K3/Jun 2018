@@ -1,0 +1,296 @@
+1.
+
+bool arrive[N]={false};
+bool continue[N] = {false};
+
+Process CS(i=1 to N) {
+	//1
+	arrive[i]=true;
+	//2
+	while(!continue[i]);
+	//3
+	continue[i]=false;
+	//4
+}
+
+Coordinator{
+	for(int i=0; i< N;i++){
+		await<arrive[i]==true>;
+		arrive[i]=false;
+	}
+
+	for(int i=0; i<N;i++)
+		continue[i]=true;
+}
+
+1 -  nismo mogli da brisemo flag na toj poziciji jer bi ostao lazni "true" jer ustvari nismo prosli barijeru nego je ostao i predhodne iteracije
+2 -  nema smisla
+3 -  isto kao 1 nije stigao na barijeru nego od prosle iteracije
+4 -  isto 
+
+2. put - kanjon
+
+// onih kojih ima vise imaju prvenstvo prolaza
+// jednom dobijeno pravo ne vazi zauvijek
+// kada se odnos promjeni zabranjuje se dolazak brojnih osoba
+
+int brKauboja=0;, brIndijanca=0;
+sem mutexK=1, mutexI=1;
+sem kauboji=0, indijanci=0;
+
+void kauboji(){
+	wait(mutexK);
+	brKauboja++;
+	if(brKauboja< brIndijanca){
+		signal(mutexK);
+		wait(kauboji);
+	}else{
+		signal(mutexK);
+	}
+
+	crossing();
+
+	wait(mutexK);
+	brKauboja--;
+	if(brKauboja==0){
+		signal(indijanci); //sve treba odblokirati al nez kako
+							//jedino da pozovem vise puta
+	}
+}
+
+
+void indijanci(){
+	//simetricno kao kauboji
+}
+
+
+3. 
+
+Monitor kasa_radnja{
+
+	int MAXRED; //max duzina reda na kasi
+	int MAXKASA; //max broj kasa
+	int brKasa;
+	cond kasa[MAXKASA];
+	int  cnt[MAXKASA]={0};
+	cond kasirke;
+	bool aktivne[MAXKASA]={false};
+	int fifo[MAXKASA]={0};
+
+	int biram_kasu(){
+		int min= cnt[0];
+		int minKasa= 0;
+		for(int i=1; i<MAXKASA;i++){
+			if(cnt[i]<min && aktivne[i]){
+				min=cnt[i];
+				minKasa=i;
+			}
+		}
+
+		if(min==MAXRED){
+			//naprvi novu i nju mu dodjeli
+			for(int i=0;i<MAXKASA;i++)
+				if(aktivne[i]==false){
+					aktivne[i]=true;
+					cnt[i]++;
+					kasa[i].wait(fifo[i]++);
+					brKasa++;
+					kasirke.signal();
+					return i;
+				}
+		}else{
+			kasa[minKasa].wait(fifo[minKasa]++);
+			return minKasa;
+		}
+	}
+
+	void odlazim(int k){
+		cnt[k]--;
+		if(cnt[k]==0 && brKasa>1){
+			brKasa--;
+			aktivne[k]=false;
+			fifo[k]=0;
+		}
+	}
+
+	void spremna_za_rad(){
+		kasirke.wait();
+	}
+
+	void sledeci_kupac(int k){
+		kasa[k].signal();
+	}
+
+}
+
+void kupac(){
+	int k=biram_kasu();
+	roba_za_naplacivanje();
+	placam();
+	odlazim(k);
+}
+
+void kasirka(){
+	spremna_za_rad();
+	racun_je();
+	sledeci_kupac(k);
+}
+
+
+4. H20  -- regioni svak saznaje id, i ranije ranije stupe u rekaciju
+
+struct H2O
+{
+	int cntH=0;
+	int cntO=0;
+	int nextH=0, nextO=0;
+	int num=0;
+	string[] mol={"","",""};
+};
+
+H2O h2o;
+
+void H(int id){
+	region(h2o){
+		int myTurn = h20.cntH++;
+		await(h20.num<3 && muTurn == nextH);
+		mol[num++]=id;
+		nextH++; //al samo kad je prvi H stigao
+		if(num==3){
+			mol[0]=mol[1]=mol[2]="";
+			s.num=0;
+			nextO++;
+			nextH++;
+		}
+	}
+
+
+}
+
+
+void O(int id){
+	region(h2o){
+		int myTurn = h20.cntO++;
+		await(h20.num<3 && muTurn == nextO);
+		mol[num++]=id;
+		if(num==3){
+			mol[0]=mol[1]=mol[2]="";
+			s.num=0;
+			nextO++;
+			nextH++;
+		}
+	}
+}
+
+5. 
+// brLeta, aerodromPocetni, aerdromKrajnji,DatumUzl,VremeUzl,
+//DatumSLe, VremeSle, BrSjedista  
+
+
+//vise procesa
+void kreiranjeDirektnogLeta(int id, string od, string do, Date datum1, Time vreme1, Date datum2, Time vreme2, int BrSjedista){
+	for(int i=0; i<BrSjedista;i++)
+		out("Let", id, od, do, datum1, vreme1, datum2, vreme2, i);
+
+	out("BrKarata", id, BrSjedista); //ubaci ukupan br karata
+}
+
+void kupovinaKarte(int idLeta){
+	in("BrKarata", idLeta, ?br);
+	out("BrKarata", idLeta,BrKarata-1);
+
+	out("Let",idLeta,?od,?do, ?datum1,?vreme1,?datum2,?vreme2,BrKarata); //kartu uzimamo na osnovu broja karata redom
+	out("Kupljena", idLeta, BrSjedista);
+}
+
+
+//samo jedan proces
+void ukidanjeLeta(int idLeta){
+	int od, do, datum1, datum2, vreme1, vreme2, BrKarata;
+
+	rd("Let",idLeta,?od,?do, ?datum1,?vreme1,?datum2,?vreme2,?BrKarata); //uzmem let za ukidanje al ga ne sklanjam jos
+
+	rdp("Let",id?, od, do, datum1,?vreme1, datum2, ?vreme,?BrKarataNovo); //uzmem novi let sa potrebnnim zahtjevima
+
+	//nadji koliko ima prodatih karata
+	br=0;
+	while(rdp("Kupljena",idLeta,s?)){
+		br++;
+	}
+
+	if((vreme<vreme1+3h || vreme>vreme1-3h)&& BrKarataNovo>br){
+		//izbaci sve info o letu
+		in(BrKarata,idLeta,?ukupnoOstalo);
+		for(int i=0; i<ukupnoOstalo+br;i++)
+			in("Let", idLeta, od, do, datum1, vreme1, datum2, vreme2, i);
+		for(int i=0;i<br;i++)
+			in(Kupljena, idLeta,?c);
+	}
+
+	//ako nema direktni onda procjeriti konektovane letove na slican nacin
+	//od prvog leta je Od idLeta, a do drugog leta je do od IdLeta
+	//ako nema ne moze se ukinuti
+
+}
+
+6.
+
+//MsgBox
+//razmjenjuju poziciju, brzinu, vektoru sile
+
+int N = ... ; //number of Body in space
+MsgBox bagBoox;
+MsgBox[] workerBox;
+MsgBox CollectorBox;
+
+struct Msg{
+	int id;
+	string opr;
+	int pozicija;
+	float brzina;
+	float vektorSile;
+	float result;
+};
+
+void Worker(int id){
+	boolean boo= true;
+	Msg m;
+	while(boo){
+		m.id=id;
+		m.opr="readyForWork";
+		mbx_put(m,BagBox);
+		mbx_get(m,workerBox[id], INF,status);
+		if(m.opr==-1){
+			break;
+		}
+		float res= calc(m.brzina, m.pozicija, m.vektorSile);
+		m.result= res;
+		mbx_put(m, CollectorBox);
+	}
+}
+
+
+void Bag(){
+	for(int i=0; i< N;i++){ // posaljemo poruku o savkom nebeskom tijelu 
+		Msg m;
+		mbx_get(m, BagBox, INF, status);
+		id=m.id;
+		m.pozicija=...;
+		m.vektorSile=...;
+		m.brzina= ...;
+		mbx_put(m,workerBox[i]);
+	}
+
+	for(int i=0; i<NumOfWorkers){
+		m.opr=-1;
+		mbx_put(m,workerBox[i]);
+	}
+}
+
+
+void Collector(){
+	for(int i=0; i<N; i++){
+		mbx_get(m, CollectorBox, INF, status);
+		//... collecting
+	}
+}

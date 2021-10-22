@@ -1,0 +1,18 @@
+process P[0] { //incijacija
+    int v; # inicijalizovana vrednost
+    int smallest = v, largest = v;
+    send values[1] (smallest, largest);
+    receive values[0] (smallest, largest);
+    send values[1] (smallest, largest);
+}
+
+Process P[i = 1 to n-1] { 
+    int v; # initialized
+    int smallest, largest;
+    receive values[i] (smallest, largest);
+    if (v < smallest) smallest = v;
+    if (v > largest) largest = v; 
+    send values[(i+1) % n] (smallest, largest); 
+    receive values[i] (smallest, largest); 
+    if (i < n-1) send values [i+1] (smallest, largest);
+}

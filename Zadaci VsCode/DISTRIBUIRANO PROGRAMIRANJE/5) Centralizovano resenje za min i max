@@ -1,0 +1,28 @@
+chan(int) value;
+chan(int,int) result[];
+
+//ovo je centralni cvor koji radi svu obradu
+Process p(0){
+    int v;
+    int min = v, max = v;
+    for(int i = 0; i < n-1; i++){
+        recieve value(m);
+        if(m > max){
+            max = m;
+        }
+        if(m < min){
+            min = m;
+        }
+    }
+    for(int i = 1; i < n-1; i++){
+        send result[i](min,max)
+    }
+
+}
+
+Process p(1:n-1 id){
+    int v;
+
+    send value(v);
+    recieve result[id](min,max);
+}

@@ -1,0 +1,33 @@
+
+sem wakeKuvar = 0, readyHrana=0;
+sem mutexLj = 1;
+int hrana = 0;
+
+void cook(){
+    while(1){
+        wait(wakeKuvar);
+
+        hrana = M ;
+
+        signal(readyHrana)
+    }
+}
+
+void ljudozder(){
+    while(1){
+        sth()
+
+        wait(mutexLj);
+        if(hrana==0)
+        {
+            signal(wakeKuvar);
+            wait(readyHrana);           
+        }
+        hrana--;
+        signal(mutexLj);
+        
+        eat();
+    }
+}
+
+

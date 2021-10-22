@@ -1,0 +1,109 @@
+1. Signal and Continue
+
+CALL
+	entryQueue.wait()
+
+RETURN
+	if(cntUrg>0){
+		cnrUrg--
+		urgentQueue.signal()
+	}
+	else
+		entryQueue.Signal()
+
+Cv.WAIT
+	cvCnt++
+	if(cntUrg>0){
+		cnrUrg--
+		urgentQueue.signal()
+	}
+	else
+		entryQueue.Signal()
+	cvSem.wait()
+	urgentQueue.wait()
+
+Cv.SIGNAL
+	if(cvCnt>0){
+		urgCnt++;
+		cvCnt--;
+		cvSem.signal()
+	}
+
+Cv.SIGNALALL
+	while(cvCnt>0){
+		cvSem.signal()
+	}
+	
+
+2. Savings Account problem
+
+Mozda bi moglo da se provjerava kao kod regiona, da li je vlasnik racuna.
+
+1) Prvo resenje sa while
+
+monitor SavingAccount{
+
+	int money=0;
+	int cnt=0;
+	condition c;
+
+	void Uplata(int amount){
+		if(amount>0)
+			money+=amount;
+		c.signal();
+	}
+
+	void Isplata(int amount){
+		me=cnt++;
+		while(money-amount<0)
+			c.wait(me);
+		money=money-amount;
+		c.signal();
+	}
+
+	int Stanje(){
+		return money;
+	}
+}
+
+
+2) Drugo rjesenje bez while
+
+monitor SavingAccount{
+
+	int money=0;
+	int cnt=0;
+	condition c;
+	Queue q= new Queue();
+
+	void Uplata(int amount){
+		money+=amount;
+		
+		while(c.queue() && q.peek()<=money){
+			q.delete();
+			money=money-amount;
+			c.signal();
+		}
+	}
+
+	void Isplata(int amount){
+		me=cnt++;
+
+		if(c.queue() || amount>money){
+			q.add(amount);
+			c.wait(me);
+		}
+		else 
+			money=money-amount;
+	}
+
+	int Stanje(){
+		return money;
+	}
+}
+
+
+
+
+
+

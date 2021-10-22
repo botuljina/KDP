@@ -1,0 +1,34 @@
+//zadatak sa predavanja, kupi sa oba kanala i sortiraj u rastucem poretku na out kanal
+chan in1(int);
+chan in2(int);
+chan out(int);
+
+process Merge{
+    int v1, v2;
+    recieve in1(v1);
+    recieve in2(v2);
+
+    while(v1 != EOS && v2 != EOS){
+        if(v1 < v2){
+            send out(v1);
+            recieve in1(v1);
+        }else{
+            send out(v2);
+            recieve in2(v2);
+        }
+    }
+    if(v1 == EOS){
+        while(v2 != EOS){
+            send out(v2);
+            recieve in2(v2);
+        }
+    }
+    if(v2 == EOS){
+        while(v1 != EOS){
+            send out(v1);
+            recieve in1(v1);
+        }
+    }
+    //[ovo je jako bitno sprecava deadlock, mora se poslati EOS]
+    send out(EOS);
+}

@@ -1,0 +1,59 @@
+//K1 26.03.2015
+
+//1.
+
+int lock=false;
+int izlicitirana_vrednost=...;
+
+void licitacije(){
+	while(true){
+
+		int initialValue=FA(izlicitirana_vrednost,0);
+		int howMuch=izlicitiraj(izlicitirana_vrednost);
+
+		if(howMuch==-1)
+			return;
+
+		while(TS(lock) && izlicitirana_vrednost==initialValue){}
+
+		if(izlicitirana_vrednost==initialValue)
+			FA(izlicitirana_vrednost,howMuch);
+
+		lock=false;
+	}
+}
+
+
+//2.
+
+const int N=...;
+int cnt=N;
+priorityQueue<sem> requests;
+sem mutex=1;
+queue<int> a;
+
+void request(int amount){
+	sem local=0;
+	wait(mutex);
+	if(amount>cnt){
+		requests.push(local);
+		a.push(amount);
+		signal(mutex);
+		wait(local);
+	}
+	cnt-=amount;
+	signal(mutex);
+
+}
+
+void release(int amount){
+	wait(mutex);
+	cnt+=amount;
+	int am= a.peek();
+	if(cnt>=am){
+		sem s=requests.pop();
+		a.pop();
+		signal(s);
+	}else
+		signal(mutex);
+}

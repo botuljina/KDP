@@ -1,0 +1,78 @@
+struct Unisex{
+    int m = 0;
+    int w = 0;
+    int waitingM = 0;
+    int waitingW = 0;
+}
+
+Unisex u;
+
+void man(){
+    while(1){
+        region(u){     
+            waitingM ++;  
+            await(w==0 && waitingW == 0 && m < N) 
+            waitingM --;
+            
+            m++;
+        }
+
+        pisaj();
+
+        region(u){
+            m--;
+        }
+    }
+}
+
+
+
+// ovo za woman nije kako treba jer ima izgladnjivanja, simetricno kao gore za man bi trebalo da izgleda telo funkcije woman
+void woman(){
+    while(1){ 
+        region(u){
+            await(m==0)
+            w++;
+        }
+
+        pisaj();
+
+        region(u){
+            w--;
+        }
+    }
+}
+
+
+
+----------------------------------------------------------------------------------------
+RESENJE PREKO TICKET ALGORITMA
+----------------------------------------------------------------------------------------
+struct Unisex{
+    int m = 0;
+    int w = 0;
+    int ticket = 0;
+    int next = 0;
+}
+
+Unisex u;
+
+//simetricno je za woman metod
+void man(){
+    while(1){
+        region(u){     
+            myticket = ticket;
+            ticket++; 
+            await(w==0 && myticket == next && m < N) 
+                  
+            m++;
+            next++;
+        }
+
+        pisaj();
+
+        region(u){
+            m--;
+        }
+    }
+}

@@ -1,0 +1,36 @@
+1. 
+
+monitor Resursi{
+	
+	int r=3;
+	cond c1, c2;
+	int cnt2=0, cnt1=0;
+
+	void request(int num, int level){ //level 0 -- visok, 1--normalan
+		if(num<r){
+			r-=num;
+		}else{
+			if(num==2){
+				c2.wait(level);
+			}
+			else{
+				c1.wait(level);
+			}
+		}
+	}
+
+	void release(int num){
+		r+=num;
+		if(r>1 && c2.queue()){
+			r-=2;
+			c2.signal();
+		}
+		else if(c1.queue()){
+			while(c1.queue() && r>0){
+				r--;
+				c1.signal();
+			}
+		}	
+	}
+
+}

@@ -1,0 +1,33 @@
+//Septembar 
+
+//1. Ticket
+
+//2. 
+void init{
+	const int M=...;
+	const int N=...;
+	int cnt=0;
+	sem load=1;
+	sem drink=0;
+	sem mutex=1;
+}
+
+void load(){
+	wait(load);
+	//loading...
+	cnt=N;
+	signal(drink);
+}
+
+
+void drinkers(){ //ako ih treba pustit M onda jos jedan brojac koji M og blokira
+	wait(mutex);
+	if(cnt==0){
+		signal(load);
+		wait(drink);
+	}
+	///drinking...
+
+	cnt--;
+	signal(mutex);
+}

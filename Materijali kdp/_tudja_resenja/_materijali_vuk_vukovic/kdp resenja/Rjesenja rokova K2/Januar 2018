@@ -1,0 +1,96 @@
+1. 
+
+monitor Monitor1{
+
+	Monitor2 m;
+	bool free = true;
+	cond c;
+
+	procedure request(int time){
+		if (free) {
+			free = false;
+			m.allocResoruce(); // u toj proceduri se blokira ako nema dovoljno istanci
+		}
+		else 
+			c.wait(time);  
+	}
+
+	procedure release(){
+		if (c.empty()) {
+			free = true
+			m.deallocResource();
+		}
+		else 
+			c.signal(); 
+	}
+
+}
+
+
+monitor Monitor2{
+
+	void allocResoruce(){
+		//alokacija
+	}
+
+	void deallocResource(){
+		//dealloc
+	}
+}
+
+Problem moze da nastane ukoliko iz Monitora1 pozovemo proceduru MOnitora2 i u njoj se uradi wait(npr u slucaju da nemamo dovljno resursa), tada ce se osloboditi monitor2,
+ali nece monitor1, sto ce da napravi problem jer nema ko da oslobodi resurse jer niko vise ne moze da udje u Monitor1 i nastaje deadlock. 
+
+
+
+2.
+
+struct Struktura {
+	bool vrhSudija=false;
+	int brSudija=0;
+	int brUsli=0;
+}
+
+class ProblemSudije{
+
+	Struktura s;
+
+	void Sudija(){
+		region(s){
+			await(s.VrhovniSudija==false);
+			s.brSudija++; // javljaju se sluzbeniku
+		}
+		//ceka da dodje sudija
+		region(s){ 
+			brUsli++;
+		}
+		//polaze zakletvu
+		region(s){
+			s.brSudija--;
+		}
+	}
+
+	void VrhovniSudija(){
+		region(s){
+			s.VrhovniSudija=true;
+			await(s.brUsli==brSudija); // cekaj da svi udju
+			s.brUsli=0;
+		}
+		//slusa i dodjeljuje diplome
+		region(s){
+			await(s.brSudija==0); //da svi budu saslusani
+			s.VrhovniSudija=false;
+		}
+	}
+
+	void Posmatraci(){
+		region(s){
+			await(s.vrhSudija==false);
+			udji(); // da li smije vani, ms da ne 
+		}	
+		//... gleda polganje zakletve
+		izadji();
+	}
+}
+
+

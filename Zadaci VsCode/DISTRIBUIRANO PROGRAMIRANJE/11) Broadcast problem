@@ -1,0 +1,26 @@
+Module BoundedBuffer
+    op put(element);
+    op get() return element
+
+Body 
+    element buffer[n]
+    int front = 0, rear = 0;
+    semaphore full = 0, empty = n, mutexP = 1, mutexC = 1;
+Process put(element item){
+    wait(empty);
+    wait(mutexP);
+    buffer[rear] = item;
+    rear = (rear+1)%n;
+    signal(mutexP);
+    signal(full);
+}
+//svaki put kad pristigne novi zahtev kreira se zasebna nit
+Process get() returns item{
+    wait(full); 
+    wait(mutexC);
+    item = buffer[front];
+    front = (front+1)%n;
+    signal(mutexC);
+    signal(empty);
+}
+End BoundedBuffer;

@@ -1,0 +1,228 @@
+1.  
+bool in1=false, in2=false;
+int last=1;
+
+process CS1{
+	while(true){
+		in1=true;
+		last=1;
+		<await (in2==false or last==2);> //while(in2 && last==1);
+		//...
+		in1=false;
+	}
+}
+
+process CS2{
+	while(true){
+		in2=true;
+		last=2;
+		<await (in1==false or last==1);> //while(in1 && last==2);
+		//...
+		in2=false;
+	}
+}
+
+<await (B)> <==> while(not B); =>  !(in2==false or last==2) =>
+in2==true and last==1 //ne posjeduje AMOP jer su i in2 i last kriticne ref
+
+Npr. ako je in2 false i prije ispitiivnja last==1 se promjeni,
+ne moze se nista desiti jer jedna varijanta je da in2 zavrsi i last==2
+odmah pa nece u kriticnu a druga da to ne uradi al prvi dio je 
+vec provjeren i ne provjerava se opet
+
+//za N proces izgleda ovako
+
+int[N] in;
+int[N] last;
+
+process CS[i=1 to N]{
+	while(true){
+		for(j=  1 to N ){ //prolazimo kroz sva stanja za proces
+			last[j]=i; 
+			in[i]= j;
+			for(k=1 to n st i!=k){ //za sve procese
+				while(in[k]>=in[i] and last[j]==i) skip;
+
+				//kriticna sekcija
+				in[i]=0;
+				//nije kriticna sekcija
+			}
+		}
+
+	}
+}
+
+
+2. The Single Bathroom problem - semafori
+
+
+void init(){
+	int N=...;
+	int cnt = 0;
+	int cntW=0, cntM=0, cntC=0;
+	int waitingChild=0;
+
+	sem empty=1; // ako nije empty 1 ne moze niko da prodje
+	sem general= N;
+
+	sem mutexUnisex=1;
+	sem mutexChild=1;
+
+	sem man=1;
+	sem women=1;
+	sem child=0;
+
+	sem childFinish=0;
+
+}
+
+void janiton(){
+	wait(empty);
+	//working...
+	signal(empty);
+}
+
+void women(){
+	wait(mutexUnisex);
+	numW++;
+	cnt++;
+	if(numW==1){
+		signal(mutexUnisex);
+		wait(empty);
+		wait(men);
+	}else{
+		signal(mutexUnisex);
+	}
+
+	wait(general);
+
+	if(waitingChild!=0 && cnt<N){ //ima djece i mjesta
+		wait(mutexUnisex);
+		cnt++;
+		cntC++;
+		waitingChild--;
+		signal(mutexUnisex);
+		signal(child);
+	}
+
+	if(cntC>0){
+		wait(childFinish);
+		cntC--;
+	}
+
+	/*****/
+
+
+	wait(mutexUnisex);
+	cntW--;
+	cnt--;
+	if(cntW==0){
+		signal(empty);
+		signal(man);
+	}
+	signal(mutexUnisex);
+	signal(general);
+}
+
+void child(){
+ wait(general);
+ wait(child)
+ //...
+ signal(childFinish);
+ signal(general);
+}
+
+void man(){
+	//kao zene
+}
+
+
+
+3. Monitori -- Stampaci -- SC
+
+int N=...;
+
+Monitor Printer{
+
+	cond printer[2];
+
+	int request(int printer){
+		if(printer[i].empty())
+			return printer;
+		else{
+			printer[i].wait();
+		}
+
+	}
+
+
+	void release(int printer){
+			printer[i].signal();
+	}
+
+}
+
+//po prioritetu, isti prioritet FCFS
+
+Monitor Printer{
+
+	cond printer[2];
+	cond PWait[2][N];
+	int cnt[p][N];
+
+
+	int request(int p, int priority){
+		int myPri=cnt[p][priority]++; // u okviru svakog reda FIFO
+		while(printer[p].queue())
+			PWait[p][priority].wait(myPri);
+		printer[p].wait();
+	}
+
+
+	void release(int p){
+		printer[p].signal();
+		for(int i=0;i<N;i++)
+			if(PWait[p][i].queue()){
+				PWait[p][i].signal();
+				break;
+			}
+		}
+	}
+
+}
+
+5.
+
+node(1) korjen
+
+
+USER::
+x: integer; x=...; result:bool;
+node(0)!has(x);
+node(0)?has(result);
+[result-> "found"
+ [] not(result) -> "not found"]
+
+INTERFACE::size, nHas :integer; size:=0; nHas:=0;
+*[x:integer; nHas<MAX, (i: 1...Nu)U(i)?has(x)->]
+
+/*knjiga*/
+
+6.
+
+//sve ispred medjunarodnih pomjeriti na slijepi
+// pa pustiti sa slijepog
+// pa ostale
+//a pristigle po redoslijedu
+
+// 0 - medjunarodni , 1- domaci
+void Voz(int id, id tip){
+
+}
+
+void Stanica(){
+
+
+}
+
+//nisam sig sta hoce :|

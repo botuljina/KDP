@@ -1,0 +1,85 @@
+//[ovde postoji proces koordinator]
+mbx[R] r;
+mbx[W] w;
+//sanducici za proces koordinator
+mbx start, end;
+
+struct{
+    int id;
+} msg;
+
+void reader(int id){
+    msg m;
+    boolean status;
+    while(1){
+        //start reader
+        m.id = id;
+        m.operation = "start read";
+        mbx_put(m,start);
+        mbx_get(m,r[id],INF,status);
+
+        read();
+
+        //end read
+        m.id = id; 
+        m.operation = "end read";
+        mbx_put(m,end);
+    }
+}
+
+void writer(int id){
+    msg m;
+    boolean status;
+    while(1){
+        //start writer
+        m.id = id;
+        m.operation = "start write"
+        mbx_put(m,start);
+        mbx_get(m,w[id], INF, status);
+
+        write();
+
+        //end write
+        m.operation = "end write";
+
+    }
+}
+
+void coordinator()){
+    msg m,n;
+    boolean status;
+    int cntR = 0;
+    int cntW = 0;
+    while(true){
+        mbx_get(m,start, INF, status);
+
+        if(m.operation == "start read"){
+            if(cntW == 0){
+                mbx_put(m,r[m.id]);
+                cntR++;
+            } else {
+                //treba da sacekamo da pisac zavrsi da bi krenuli pisci
+                mbx_get(n,end,INF,status);
+                cntW --;
+                cntR++;
+                mbx_put(m, r[m.id]);
+            }
+
+        }else if(m.operation == "start write"){
+            if(cntW>0){
+                mbx_get(n,end,INF,status);
+                mbx_put(m, w[m.id]);
+            }else if(cntR>0){
+                while(cntR>0){
+                    mbx_get(n,end,INF,status);
+
+                    cntR--;
+                }
+                mbx_put(m,w[r.id]);
+            }else{
+                cntW++;
+                mbx_put(m,w[m.id]);
+            }
+        }
+    }
+}

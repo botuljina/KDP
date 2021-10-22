@@ -1,0 +1,174 @@
+1. ticket algoritam- fain grain
+
+
+int[N] turn;
+int number=0;
+int next;
+ 
+Process CS[id = 1 to N]{
+
+	turn[id]= FA(number, 1);
+	while(true){
+		while(turn[id]!=next)skip;
+		//CRITICAL SECTION
+		next= next+1;
+	}
+
+}
+
+bool lock=false;
+
+Process CS[id = 1 to N]{
+	while(TS(lock));
+	turn[id]= number;
+	number= number+1;
+	lock=false;
+
+	while(true){
+		while(turn[id]!=next)skip;
+		//CRITICAL SECTION
+		next= next+1;
+	}
+}
+
+
+2.
+
+sem sem2=0;
+sem sem1=1
+int cnt=0;
+
+void zameni(int vrednost){
+	if(cnt%2==0){
+
+	}else{
+
+		
+	}
+}
+
+
+
+
+
+
+
+3. F,G,H // sadrze lokalni niz rastuce 
+
+//simetricno asinhrono rjesenje
+//komuniciraju dok svaki od njih ne odredi najmanju zajednicu vrijednost 
+//koja se nalazi u njihovim nizovima
+
+// F[0,2,4,6,7] G[1,2,3,3,5,6] H[2,3,7,7] -> rjesenje: 2
+ 
+ Proces F:
+
+ int niz[]=...;
+ int i=0;
+ int value1, value2;
+ 
+ send G(niz[i]);
+ send H(niz[i]);
+ receive F(value1);
+ receive F(value2);
+
+ while(true){
+
+ 	if(niz[i]==value1 && niz[i]==value2) {
+ 	 	 MIN= niz[i];
+ 	 	 break;
+ 	}
+
+ 	i++;
+
+ 	if(i<niz.length && niz[i]<value1 && niz[i]<value2){
+ 	 	 send G(niz[i]);
+ 	     send H(niz[i]);
+    }else{
+    	if(value1<value2)
+    		receive F(value1);
+    	else
+    		receive F(value2);
+	}
+}
+
+
+
+4. C-Linda
+
+void init(){
+	out("ticket",0);
+	eval(Dispecer());
+	for(int i=0;i<BrKorisnika;i++)
+		eval(Korisnik());
+	for(int i=0; i<BrTaksija;i++)
+		eval(Taksi());
+}
+
+void Korisnik(int id){
+	int number;
+	string location=...;
+
+	//poziva telefonom dispecera
+	in("ticket", number);
+	out("ticket",number+1);
+	out("call",number,location,id);
+
+	in("response", ?taxi, ?comeingTime);
+	if(taxi==-1) return;
+	//voznja...
+	in("endRide",id);
+}
+
+
+void Dispecer(){
+	int t=0;
+	string location=...;
+	//primi zahtjev
+	in("call",t,?location,?idKorsnika)
+	//posalje zahtjev svim radio taksijima
+	out("ride",location);
+	sleep(n);
+
+
+	in("ride",location,idKorsnika);// povuci voznju ne treba nam vise
+	//nakon istekavremena objavljuje da najblizi taksi obavlja prevoz
+	//javlja korisniku taksi ili da se niko nije javio
+	if(!inp("ready", ?time, ?idTaksija)){
+		out("response", -1, -1);
+	}else{
+		Min=time;
+		MinTaksi= idTaksija;
+		while(inp("ready", ?time,?idTaksija)){
+			if(time<min){
+				Min=time;
+				MinTaksi= idTaksija;
+			}
+		}
+	}
+	out("responseToTaxi", MinTaksi, idKorsnika);
+	out("response", MinTaksi, Min);
+}
+
+void Taksi(int id){
+
+	//odlucivanje...
+	//javljaju se u peridu od N jednica vremena
+	time=n;
+	while(time>0){  //moguce da taxi ne mora obavezno da procita poziv zato ovako
+		rdp("ride",?location);
+		if(free){
+			out("ready",timeToArrive,id);
+			break;
+		}
+	 	time--;
+	}
+
+	
+	if(inp("responseToTaxi", id, ?idKorsnika)){
+		//voznja...
+		out("endRide",idKorsnika)
+		//zavrsava voznju
+	}
+
+}

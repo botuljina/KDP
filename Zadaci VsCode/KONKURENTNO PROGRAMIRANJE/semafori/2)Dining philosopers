@@ -1,0 +1,29 @@
+//**MOZE DOCI DO DEADLOCK-a zbog kruzne zavisnosti, zato ova implementacija ne valja!! **//
+
+Dodje svih pet filozofa i uzme po jednu levu viljusku, tada nastaje deadlock jer svi cekaju na sve!
+    ->Napravi ogranicenje da ne mogu svih 5 filozofa, nego da bude max 4
+Ovo resenje sad ispod radi, samo sto imamo puno semafora!
+
+
+sem fork[N] = 1;
+sem table = N - 1;
+
+void Philosoph(i = 0 to 4)
+{
+    while(1){
+        razmisljaj();
+        wait(table); // zbog uslovne sinhronizacije, zahvaljujuci ovom semaforu spasli smo se od deadlock-a, jer moze da se desi da
+                     // svi uzmu svoju levu viljusku i onda kita, zato se uvodi table semafore!
+
+        wait(fork[i]); //uzmi svoju levu viljusku
+        wait(fork[(i+1) mod N]);    //uzmi svoju desnu viljusku
+
+        jedi();
+
+        signal(fork[i])
+        signal(fork[(i+1) mod N])
+        signal(table);
+    }     
+}
+---------------------------------
+ 

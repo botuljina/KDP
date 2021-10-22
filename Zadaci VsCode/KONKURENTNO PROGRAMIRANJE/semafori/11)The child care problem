@@ -1,0 +1,80 @@
+// roditelji ostavljaju decu samo ako ima mesta
+int children=0, nannies =0;
+
+int waitingNannies = 0;
+int waitingChildren = 0;
+
+sem mutex = 1, recieveExit = 0;
+
+void parentEnter(int Parentschildren){
+    wait(mutex);
+    //deca mogu ostati u vrticu
+    if((Parentschildren + children)  <= 3*nannies)
+    {
+        children + = Parentschildren;
+        signal(mutex)
+        return true;
+    }
+    signal(mutex);
+    return false; 
+}
+
+ 
+void parentExit(int Parentschildren){
+    wait(mutex);
+    children -= Parentschildren;
+
+    //[broj dadilja koje smeju da izadju, +2 znaci da zaokruzujemo na vece]
+    int outNannies = nannies - (children+2)/3;
+    
+    if(waitingNannies < outNannies)
+    {
+        outNannies = waitingNannies;
+    }
+    
+    for(int i =0; i< outNannies; i++)
+    {
+        signal(nannyExit);
+        wait(recieveExit)
+    }
+
+    signal(mutex);
+}
+
+void nannyEnter(){
+    wait(mutex);
+    nannies++;
+    if(waitingNannies > 0)
+    {
+        signal(nannyExit);
+        wait(recieveExit);
+    }
+    signal(mutex)  
+}
+
+void nannyExit(){
+    wait(mutex)
+    if(children <= 3* (nannies-1))
+    {
+        nannies--;
+        signal(mutex);
+    }
+    else{
+        //mora da cekam da se odvedu deca kako bi dadilja mogla da ode
+        waitingNannies++;
+        signal(mutex);
+
+        wait(nannyExit);
+    	
+        waitingNannies--;
+        nannies--;
+
+        signal(recieveExit);       
+    }
+
+   // signal(mutex);
+}
+
+//-----------------------------------------------------------------------------------------------------------------
+VARIJANTA 2 -> Resiti isti ovaj problem ukoliko roditelj mora da saceka da ostavi decu sve dok ne bude bilo mesta da ih sve ostavi
+//-----------------------------------------------------------------------------------------------------------------

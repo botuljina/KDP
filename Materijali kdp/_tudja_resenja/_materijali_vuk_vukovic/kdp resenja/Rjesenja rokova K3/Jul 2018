@@ -1,0 +1,196 @@
+1.
+
+    1
+4  		2
+    3
+
+SC
+
+Monitor Crossroad{
+
+	cond street[4];
+	int in[4]={0,0,0,0};
+	int cnt[4]={0};
+
+
+	void enter(int a,int b){
+		int right= (a==1) ? 4 : a-1;
+
+		if(b!=right){ //idem pravo
+
+			while(street[a].queue()|| in[a%4+1]>0 || in[right]>0 || street[right].queue())
+				street[a].wait(cnt[a]++);
+
+			if(street[a].queue) street[a].signal();
+		}else{
+			while(street[a].queue()|| in[a%4+1]>0)
+				street[a].wait(cnt[a]++);
+
+			street[right].signal();
+			if(street[a].queue) street[a].signal();
+		}
+
+		in[a]++;
+	}
+
+
+	void exit(int a,int b){
+		in[a]--;
+		cond[a%4+1].signal(); //lijevi
+		cond[a%4+3].signal(); //desni
+	}
+
+}
+
+2.
+
+struct Barrier
+{
+	int arrived=0;
+	int continue=0;
+};
+
+
+class Barrier Synchronization{
+
+	Barrier b;
+
+	void enter(){
+		region(b){
+			arrived++;
+			if(arrived==N)
+				continue=N;
+			else
+				await(arrived==N);
+		}
+
+		crossing...
+
+		region(b){
+			continue--;
+			if(continue==0)
+				arrived=0;
+			else
+				await(continue==0);
+
+		}
+
+	}
+
+}
+
+
+3. Linda
+
+int K=...;  //kapacitet autobusa
+
+ 
+class TheBusProblem{
+
+	//out, rd, in, eval, inp, rdp
+
+	void init(){
+		for(int i=0;i<N;i++)
+			eval(Bus(i));
+		for(int i=0;i<M;i++)
+			eval(Passenger(i));
+	}
+
+	void Bus(int id){
+
+		out("StartBoarding...");
+
+		int cnt=0;
+		for(int i=0;i<K;i++){
+			boolean res=inp("PassengerArrived",?idP); //uzima najvise K putnika 
+			if(res){ 
+				out("Selected",idP, id);
+				cnt++;
+			}
+		}
+
+		in("StartBoarding..."); //kraj ukrcavanja
+
+		for(int i=0; i<cnt;i++)
+			out("StartDrive",id);
+
+		//drive...
+
+		for(int i=0;i<cnt;i++){
+			out("EndDrive",id);
+		}
+		
+	}
+
+	void Passenger(int id){
+		//dok je ukrcavanje na trenutni bus u toku cekaju
+		while(rdp("StartBoarding...")){
+			//uposleno cekaj -- ne znam smije li ovo ovako
+		}
+		
+		out("PassengerArrived",id);
+
+		in("Selected",id, ?idBus);
+		in("StartDrive",idBus);
+
+		//drive...
+
+		in("EndDrive",idBus); //cekaju znak da izadju	
+	}
+
+
+}
+
+
+
+
+4. CSP - TheChildCare
+
+//3 djeteta 1 vaspitacica
+
+[Parent(i:1...N)::PARENT || Nanny(i:1...M)::NANNY || Monitor::MONITOR]
+
+
+
+PARENT::[
+	true -> *[
+		Monitor! bringUpChildren(num);
+		//waiting...
+		Monitor? OkParent();
+		//...few hours later
+		Monitor! bringBackChildren(num);
+	]
+]
+
+
+NANNY::[
+	true -> *[
+		Monitor ! NannyEnter();
+		//playing with children...
+		Monitor ! NannyExit();
+		Monitor ? OkNanny();
+	]
+]
+
+MONITOR::Monitor[
+	numChildren, numNanny: integer;
+	parentsWaiting : (0...N) integer;
+ 	numChildren:=0;
+ 	parentsWaiting[0...N]=-1;
+ 	numNanny:=0;
+
+
+ 	*[
+ 		(i:0...N)Parent(i) ? bringUpChildren(num) -> [ numNanny*3>=numChildren+num -> nunumChildren:=numChildren+num;
+ 													   [] numNanny*3<numChildren+num -> parentsWaiting[i]:= num;]
+ 		
+ 		[](i:0...N)Nanny(i) ? NannyEnter() -> numNanny=numNanny+1; i: integer; i:=0;
+ 			*[i<N ; numNanny*3>=numChildren+parentsWaiting[i] -> Parent(i) ! OkParent(); 
+ 					[] numNanny*3 < numChildren+parentsWaiting[i] i:=i+1]
+ 		]
+ 		[](numNanny-1)*3>=(numChildren+numChildWaiting);(i:0...N)Nanny(i) ? NannyExit() -> numNanny=numNanny-1; Nanny(i)! OkNanny();
+ 		[](i:0...N)Parent(i) ? bringUpChildren(num) -> numChildren:=numChildren-num;
+ 	]
+
+]
+

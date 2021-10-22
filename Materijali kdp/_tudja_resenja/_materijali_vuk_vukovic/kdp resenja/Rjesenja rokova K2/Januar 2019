@@ -1,0 +1,23 @@
+2. SC
+
+monitor Zamena{
+
+	condition c;
+	int *val1;
+	int cnt=0;
+
+	void zameni(int* vrednost){
+		if((cnt%2)==1){
+			int tmp=*val1;
+			*val1=*vrednost;
+			*vrednost=tmp;
+			cnt=0;
+			c.signal();
+		}else{
+			val1=vrednost;
+			cnt++;
+			c.wait();
+		}
+	}
+
+}

@@ -1,0 +1,102 @@
+1. 
+
+0 kategorija => do 4
+1 kategorija => do 6
+3 kategorija => do 8
+
+monitor Taxi{
+
+	cond c[3]; 
+	cond cars[3], unique;
+ 	int cnt[3]={0,0,0}, uniqueCnt=0; 
+	
+	public void zelim_vozilo(int tip){
+		if(unique.queue() || cars[0].empty() && cars[1].empty() && cars[2].empty())
+			unique.wait(uniqueCnt++);
+		
+		if(cars[tip].queue()){
+			cars[tip].signal()
+		}else{
+			c[tip].wait(cnt[tip]++);
+		}	
+		unique.signal();
+	}
+
+	public void stiglo_vozilo(int tip){
+		if(c[0].empty() && c[1].empty() && c[2].empty() && unique.empty())
+			cars.wait();
+		else{
+			if(unique.queue() && unique.minRank()%3==tip){
+				unique.signal();
+				cars[tip].wait();
+			}else{
+				int boo=false;
+				for(int i=tip; i>=0;i--)
+					if(c[i].queue()){
+						boo=true;
+						c[i].signal();
+						break;
+					}
+					if(boo==false){
+						unique.signal();
+						cars[tip].wait();
+					}
+			}
+		}
+	}
+
+}
+
+2. 
+
+struct s{
+	int In[N]={0}, Out={0};	
+	int usli=0, izjasniliSe=0;
+}
+
+s lift;
+int sprat=0;
+
+void Osoba(int in, int out) {
+	region(lift){
+		In[in]++;
+		await(sprat==in && Out[in]==0);
+		In[in]--;
+		usli++;
+	}
+	//izjasnjavanje...
+	region(lift){
+		Out[out]++;
+		izjasniliSe++;
+	}
+	//vozam se
+	region(lift){
+		await(out==sprat);
+		Out[out]--;
+	}
+	
+}
+
+
+void lift(){
+	while(true){
+		for(int i=0; i<N;i++){
+			sprat++;
+			region(lift){
+				await(Out[sprat]==0);
+				await(In[sprat]==0);
+				await(izjasniliSe==usli);
+				usli=izjasniliSe=0;
+			}
+		}
+		for(int i=N-1; i>=0;i--){
+			sprat++;
+			region(lift){
+				await(Out[sprat]==0);
+				await(In[sprat]==0);
+				await(izjasniliSe==usli);
+				usli=izjasniliSe=0;
+			}
+		}
+	}
+}

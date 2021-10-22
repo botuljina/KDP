@@ -1,0 +1,43 @@
+monitor BarberShop{
+    int barber = 0;
+    int chair = 0;
+    int open = 0;
+    int cust = 0;
+    cond barberC, chairC, openC, customerC;
+
+    void getHaircut(int id)
+    {
+        while(barber == 0) barberC.wait();
+        //kada prodjem ovaj deo kazem zauzet je barber
+        barber --;
+        chair ++;
+
+        chairC.signal();
+
+        while(open == 0) openC.wait();
+        open--;
+        cust ++;
+        customerC.signal();
+
+    }
+
+    int getNextCustomer()
+    {
+        barber ++;
+        //kada kazem, ja dosao obavestavam drugu stranu
+        barberC.signal();
+        //sve dok je stolica prazna ja moram da cekam
+        while(chair == 0) chairC.wait();
+        chair = chair - 1;
+    }
+
+    void finishedCut()
+    {
+        //Kada zavrsim brijanje, moram da kazem da su vrata otvorena
+        open ++;
+        //kada sam promenio ovu vrednost moram da kazem sad:,,Hajde budi se"
+        openC.signal();
+        while(cust == 0) customerC.wait();
+        cust --;
+    }
+}

@@ -1,0 +1,49 @@
+//**IMA NA PUSKI
+//[RESAVANJE PROBLEMA GDE IMA JEDNOG PROIZVODJACA I JEDNOG POTROSACA]
+//ISTO JE RESENJE IAKO IMA VISE CONSUMERA I PRODUCERA, AKO JE buf jedna vrednost(nije niz)
+Semaphore ConsumerSemaphore = 1; 
+Semaphore ProducerSemaphore = 0;
+int buf;
+
+process Producer{
+    while(true){
+        wait(ConsumerSemaphore)
+        buf = data;
+        signal(ProducerSemaphore);
+    }
+}
+
+process Consumer{
+    wait(ProducerSemaphore);
+    result = buf;
+    signal(ConsumerSemaphore);
+}
+
+//[RESAVANJE PROBLEMA GDE IMA VISE PROIZVODJACA I VISE POTROSACA, KORISCENJEM BOUNDED BAFERA]
+Semaphore ConsumerSemaphore = 0; 
+Semaphore ProducerSemaphore = N;
+Semaphore ProducerMutex = 1, ConsumerMutex = 1;
+int buf[N];
+int front = 0; rear = 0;
+
+process Producer{
+    while(true){
+        wait(ProducerSemaphore);
+        wait(ProducerMutex);//ne treba ako nema vise Producera/Consumera
+        buf[rear] = data;
+        rear = (rear + 1) % N;
+        signal(ProducerMutex);
+        signal(ConsumerSemaphore)
+    }
+}
+
+process Consumer{
+    while(true){
+        wait(ConsumerSemaphore);
+        wait(ConsumerMutex);
+        result = buf[front]; 
+        front = (front + 1) % N;
+        signal(ConsumerMutex);
+        signal(ProducerMutex)
+    }
+}

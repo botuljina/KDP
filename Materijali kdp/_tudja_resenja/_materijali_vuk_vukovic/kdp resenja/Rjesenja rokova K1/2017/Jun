@@ -1,0 +1,86 @@
+//Jun 
+
+/*1. Postize se medjusobno iskljucenje jer u slucaju da oba procesa zele da udju
+in1= true i in2= true smao jedan je usao poslednji tako da ce uvijek jedan
+uci u CS. 
+Takodje npr u slacaju da da in2=false i ispitujemo last==1 i u toku toga
+in2 se promjeni na true to nece uticati jer je to vec ispitanoi u ulazi u CS
+*/
+
+
+//2.
+
+void init(){
+	const int N=...;
+	sem empty=1;
+	sem general= N;
+	sem mutexUnisex=1;
+	sem mutexChild=1;
+	sem man=1;
+	sem women=1;
+	sem child=0;
+	sem childFinish=0;
+	int cnt = 0;
+	int cntW=0, cntM=0, cntC=0;
+	int waitingChild=0;
+}
+
+void woman(){
+	wait(mutexUnisex);
+	cntW++;
+	cnt++;
+	if(numW==1){
+		signal(mutexUnisex);
+		wait(empty);
+		wait(man);
+	}else
+		signal(mutexUnisex);
+
+	wait(general);
+	
+	if(waitingChild!=0 && cnt<N){
+		wait(mutexUnisex);
+		cnt++;
+		cntC++;
+		waitingChild--;
+		signal(mutexUnisex);
+		signal(child);
+	}
+
+	if(cntC >0){
+		waitingChild++;
+		wait(childFinish);
+		cntC--;
+
+	}
+
+	/***/
+
+	wait(mutexUnisex);
+	cntW--;
+	cnt--;
+	if(cntW==0){
+		signal(empty);
+		signal(man);
+	}
+	signal(mutexUnisex);
+	signal(general);
+}
+
+void man(){
+	//analogno zenama
+}
+
+void child(){
+	wait(general);
+	wait(child);
+	/***/
+	signal(childFinish);
+	signal(general);
+}
+
+void janiton(){
+	wait(empty);
+	working();
+	signal(empty);
+}

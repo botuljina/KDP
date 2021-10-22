@@ -1,0 +1,39 @@
+//Jun 13.06.2016
+
+//2.
+
+void parentEat(){
+	wait(toLeave);
+	eating();
+	signal(toLeave);
+}
+
+void paretnHunting(){
+	wait(parent);
+	wait(toLeave);
+	hunting();
+	cnt=F;
+	signal(toLeave);
+	signal(parent);
+
+}
+
+void child(){
+	wait(mutex);
+	cnt--;
+	if(num<=0)
+		signal(parent);
+	else
+		signal(mutex);
+	//eating...
+
+
+}
+
+void init(){
+	const int F=...;
+	int cnt=F;
+	sem mutex=0;
+	sem toLeave=1;
+	sem parent=1;
+}
